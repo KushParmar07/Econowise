@@ -4,7 +4,10 @@ import 'budget.dart';
 
 class SaveData extends ChangeNotifier {
   final List<Transaction> _transactions = [];
-  final List<Budget> _budgets = [];
+  final List<Budget> _budgets = [
+    Budget("Test", 500, DateTime.now(), DateTime.now().add(Duration(days: 31)),
+        Icons.shopping_cart)
+  ];
 
   List<Transaction> get transactions => _transactions;
   List<Budget> get budgets => _budgets;

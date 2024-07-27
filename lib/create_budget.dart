@@ -1,6 +1,8 @@
+import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'budget.dart';
 import 'navigation_bar.dart';
+import 'package:provider/provider.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({
@@ -117,7 +119,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     if (widget.currentBudget == null) {
       if (_budgetTitleController.text != "" &&
           _budgetAmountController.text != "") {
-        currentBudgets.add(Budget(
+        context.read<SaveData>().addBudget(Budget(
             _budgetTitleController.text,
             int.parse(_budgetAmountController.text),
             _startSelectedDate,
@@ -125,10 +127,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
             _selectedIcon));
       }
     } else {
-      currentBudgets.remove(widget.currentBudget);
       if (_budgetTitleController.text != "" &&
           _budgetAmountController.text != "") {
-        currentBudgets.add(Budget(
+        context.read<SaveData>().deleteBudget(widget.currentBudget ??
+            Budget(
+                "Placeholder", 100, DateTime.now(), DateTime.now(), Icons.abc));
+        context.read<SaveData>().addBudget(Budget(
             _budgetTitleController.text,
             int.parse(_budgetAmountController.text),
             _startSelectedDate,
@@ -371,9 +375,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           child: Container(
                             constraints: const BoxConstraints(minHeight: 60),
                             alignment: Alignment.center,
-                            child: const Text(
-                              'Create Budget',
-                              style: TextStyle(
+                            child: Text(
+                              widget.currentBudget == null
+                                  ? 'Create Budget'
+                                  : 'Save Budget',
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,

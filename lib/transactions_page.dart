@@ -125,8 +125,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Consumer<SaveData>(builder: (context, transaction, child) {
-        return TransactionsList(transaction.transactions);
+      body: Consumer<SaveData>(builder: (context, data, child) {
+        return TransactionsList(data.transactions);
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: openDialog,

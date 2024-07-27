@@ -1,8 +1,9 @@
+import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'budget.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'transaction.dart';
 import 'create_budget.dart';
+import 'package:provider/provider.dart';
 
 class BudgetPage extends StatefulWidget {
   const BudgetPage({
@@ -19,8 +20,6 @@ class BudgetPage extends StatefulWidget {
 class _BudgetPageState extends State<BudgetPage> {
   late TextEditingController goalController;
   late TextEditingController budgetController;
-  late List<Transaction> transactions = [];
-  late List<Budget> currentBudgets = [];
   late Budget currentBudget;
   int totalSpent = 0;
   late DateTime startDate;
@@ -68,8 +67,10 @@ class _BudgetPageState extends State<BudgetPage> {
     goalController = TextEditingController();
     budgetController = TextEditingController();
 
-    if (currentBudgets.isNotEmpty) {
-      currentBudget = currentBudgets[currentBudgets.length - 1];
+    if (context.read<SaveData>().budgets.isNotEmpty) {
+      currentBudget = context
+          .read<SaveData>()
+          .budgets[context.read<SaveData>().budgets.length - 1];
     } else {
       currentBudget = Budget("Sample Budget", 100, DateTime.now(),
           DateTime.now(), Icons.accessibility_rounded);
@@ -81,7 +82,7 @@ class _BudgetPageState extends State<BudgetPage> {
 
   void updateTransactions() {
     totalSpent = 0;
-    for (var transaction in transactions) {
+    for (var transaction in context.read<SaveData>().transactions) {
       if (transaction.spent &&
           transaction.date!.isAfter(startDate) &&
           transaction.date!.isBefore(endDate)) {
@@ -96,9 +97,11 @@ class _BudgetPageState extends State<BudgetPage> {
 
   void deleteBudget(Budget budget) {
     setState(() {
-      currentBudgets.remove(budget);
-      if (currentBudgets.isNotEmpty) {
-        currentBudget = currentBudgets[currentBudgets.length - 1];
+      context.read<SaveData>().deleteBudget(budget);
+      if (context.read<SaveData>().budgets.isNotEmpty) {
+        currentBudget = context
+            .read<SaveData>()
+            .budgets[context.read<SaveData>().budgets.length - 1];
       }
     });
   }
@@ -122,117 +125,123 @@ class _BudgetPageState extends State<BudgetPage> {
           tooltip: "Create Budget",
           child: const Icon(Icons.add),
         ),
-        body: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Column(
-              children: [
-                DropdownButton(
-                  value: currentBudget,
-                  items: currentBudgets
-                      .map((budget) => DropdownMenuItem(
-                          value: budget, child: Text(budget.goal)))
-                      .toList(),
-                  onChanged: (budget) => setState(() {
-                    currentBudget = budget!;
-                    currentBudget.totalUsed = totalSpent;
-                    startDate = currentBudget.startDate!;
-                    endDate = currentBudget.endDate!;
-                    updateTransactions();
-                  }),
-                ),
-                Row(
+        body: Consumer<SaveData>(builder: (context, data, child) {
+          return data.budgets.isNotEmpty
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      currentBudget.goal,
-                      style: const TextStyle(fontSize: 30),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    Icon(currentBudget.icon)
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      'Total Budget: ${currentBudget.budgetAmount.toString()}\$',
-                      style: const TextStyle(fontSize: 25),
-                    ),
-                    IconButton(
-                        onPressed: () {
-                          showBudgetOptions(currentBudget);
-                        },
-                        icon: const Icon(Icons.more_vert))
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      "From: ",
-                      style: TextStyle(
-                          fontSize: 20, color: Colors.pinkAccent[700]),
-                    ),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    Text(
-                      currentBudget.startDate.toString().split(" ")[0],
-                      style: TextStyle(
-                          fontSize: 20, color: Colors.pinkAccent[700]),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      "To: ",
-                      style: TextStyle(
-                          fontSize: 20, color: Colors.pinkAccent[700]),
-                    ),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    Text(
-                      currentBudget.endDate.toString().split(" ")[0],
-                      style: TextStyle(
-                          fontSize: 20, color: Colors.pinkAccent[700]),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: CircularPercentIndicator(
-                    radius: 150.0,
-                    lineWidth: 50.0,
-                    percent: currentBudget.totalUsed /
-                                    currentBudget.budgetAmount <=
-                                1 &&
-                            currentBudget.totalUsed /
-                                    currentBudget.budgetAmount >=
-                                0
-                        ? currentBudget.totalUsed / currentBudget.budgetAmount
-                        : 1,
-                    center: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Column(
                       children: [
-                        Text(
-                          currentBudget.budgetAmount != 0
-                              ? '${(currentBudget.totalUsed / currentBudget.budgetAmount * 100).round().toString()}% Used'
-                              : "No Budget",
-                          style: const TextStyle(fontSize: 30),
+                        DropdownButton(
+                          value: currentBudget,
+                          items: data.budgets
+                              .map((budget) => DropdownMenuItem(
+                                  value: budget, child: Text(budget.goal)))
+                              .toList(),
+                          onChanged: (budget) => setState(() {
+                            currentBudget = budget!;
+                            currentBudget.totalUsed = totalSpent;
+                            startDate = currentBudget.startDate!;
+                            endDate = currentBudget.endDate!;
+                            updateTransactions();
+                          }),
                         ),
-                        Text(
-                          '\$ Left: ${currentBudget.budgetAmount - currentBudget.totalUsed}',
-                          style: const TextStyle(fontSize: 30),
+                        Row(
+                          children: [
+                            Text(
+                              currentBudget.goal,
+                              style: const TextStyle(fontSize: 30),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            Icon(currentBudget.icon)
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              'Total Budget: ${currentBudget.budgetAmount.toString()}\$',
+                              style: const TextStyle(fontSize: 25),
+                            ),
+                            IconButton(
+                                onPressed: () {
+                                  showBudgetOptions(currentBudget);
+                                },
+                                icon: const Icon(Icons.more_vert))
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "From: ",
+                              style: TextStyle(
+                                  fontSize: 20, color: Colors.pinkAccent[700]),
+                            ),
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            Text(
+                              currentBudget.startDate.toString().split(" ")[0],
+                              style: TextStyle(
+                                  fontSize: 20, color: Colors.pinkAccent[700]),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "To: ",
+                              style: TextStyle(
+                                  fontSize: 20, color: Colors.pinkAccent[700]),
+                            ),
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            Text(
+                              currentBudget.endDate.toString().split(" ")[0],
+                              style: TextStyle(
+                                  fontSize: 20, color: Colors.pinkAccent[700]),
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          child: CircularPercentIndicator(
+                            radius: 150.0,
+                            lineWidth: 50.0,
+                            percent: currentBudget.totalUsed /
+                                            currentBudget.budgetAmount <=
+                                        1 &&
+                                    currentBudget.totalUsed /
+                                            currentBudget.budgetAmount >=
+                                        0
+                                ? currentBudget.totalUsed /
+                                    currentBudget.budgetAmount
+                                : 1,
+                            center: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  currentBudget.budgetAmount != 0
+                                      ? '${(currentBudget.totalUsed / currentBudget.budgetAmount * 100).round().toString()}% Used'
+                                      : "No Budget",
+                                  style: const TextStyle(fontSize: 30),
+                                ),
+                                Text(
+                                  '\$ Left: ${currentBudget.budgetAmount - currentBudget.totalUsed}',
+                                  style: const TextStyle(fontSize: 30),
+                                ),
+                              ],
+                            ),
+                            progressColor:
+                                const Color.fromARGB(255, 175, 41, 41),
+                          ),
                         ),
                       ],
                     ),
-                    progressColor: const Color.fromARGB(255, 175, 41, 41),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ));
+                  ],
+                )
+              : const Center(child: Text("Please Create A Budget"));
+        }));
   }
 }

@@ -22,7 +22,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   IconData _selectedIcon = Icons.shopping_cart;
   String budgetDescriptionText = 'How much would you like to spend on ';
   DateTime? _startSelectedDate = DateTime.now();
-  DateTime? _endSelectedDate = DateTime.now();
+  DateTime? _endSelectedDate = DateTime.now().add(const Duration(days: 31));
 
   late List<Budget> currentBudgets = [];
 

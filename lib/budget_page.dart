@@ -85,7 +85,7 @@ class _BudgetPageState extends State<BudgetPage> {
     for (var transaction in context.read<SaveData>().transactions) {
       if (transaction.spent &&
           transaction.date!.isAfter(startDate) &&
-          transaction.date!.isBefore(endDate)) {
+          transaction.date!.isBefore(endDate.add(const Duration(days: 1)))) {
         totalSpent += transaction.amount;
       }
     }

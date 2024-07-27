@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'budget.dart';
 import 'navigation_bar.dart';
-import 'transaction.dart';
 
 class BudgetScreen extends StatefulWidget {
-  const BudgetScreen(
-      {super.key,
-      required this.budgets,
-      this.currentBudget,
-      required this.transactions});
+  const BudgetScreen({
+    super.key,
+    this.currentBudget,
+  });
 
-  final List<Budget> budgets;
   final Budget? currentBudget;
-  final List<Transaction> transactions;
 
   @override
   _BudgetScreenState createState() => _BudgetScreenState();
@@ -26,7 +22,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   DateTime? _startSelectedDate = DateTime.now();
   DateTime? _endSelectedDate = DateTime.now();
 
-  late List<Budget> currentBudgets = List.from(widget.budgets);
+  late List<Budget> currentBudgets = [];
 
   // List to hold common icons (you can customize this list)
   final List<IconData> _iconOptions = [
@@ -145,14 +141,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
   }
 
   void back() {
-    Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) => MenuSelecter(
-                  budgets: currentBudgets,
-                  transactions: widget.transactions,
-                  index: 0,
-                )));
+    Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (context) => const MenuSelecter(index: 0)));
   }
 
   @override

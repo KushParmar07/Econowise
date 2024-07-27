@@ -2,20 +2,15 @@ import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'transaction.dart';
 import 'transactions_list.dart';
-import 'navigation_bar.dart';
-import 'budget.dart';
 import 'package:provider/provider.dart';
 
 class TransactionsPage extends StatefulWidget {
-  const TransactionsPage(
-      {super.key,
-      required this.title,
-      required this.transactions,
-      required this.budgets});
+  const TransactionsPage({
+    super.key,
+    required this.title,
+  });
 
   final String title;
-  final List<Transaction> transactions;
-  final List<Budget> budgets;
 
   @override
   State<TransactionsPage> createState() => _TransactionsPageState();
@@ -121,16 +116,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
     dateController.text = "";
     spent = false;
     date = DateTime.now();
-
-    Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-            pageBuilder: (context, animation1, animation2) => MenuSelecter(
-                  budgets: widget.budgets,
-                  transactions: const [],
-                  index: 1,
-                ),
-            transitionDuration: Duration.zero));
   }
 
   @override

@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
 import 'transactions_page.dart';
 import 'budget_page.dart';
-import 'budget.dart';
-import 'transaction.dart';
 
 class MenuSelecter extends StatefulWidget {
-  const MenuSelecter(
-      {super.key,
-      required this.budgets,
-      required this.transactions,
-      required this.index});
+  const MenuSelecter({super.key, required this.index});
 
-  final List<Budget> budgets;
-  final List<Transaction> transactions;
   final int index;
 
   @override
@@ -21,8 +13,6 @@ class MenuSelecter extends StatefulWidget {
 
 class _MenuSelecterState extends State<MenuSelecter> {
   late int _currentIndex = widget.index;
-  late List<Budget> currentBudgets = List.from(widget.budgets);
-  late List<Transaction> currentTransactions = List.from(widget.transactions);
 
   @override
   void initState() {
@@ -30,16 +20,8 @@ class _MenuSelecterState extends State<MenuSelecter> {
   }
 
   late List<Widget> body = [
-    BudgetPage(
-      title: 'Budget Page',
-      budgets: currentBudgets,
-      transactions: currentTransactions,
-    ),
-    TransactionsPage(
-      title: 'Transactions Page',
-      transactions: currentTransactions,
-      budgets: currentBudgets,
-    ),
+    const BudgetPage(title: 'Budget Page'),
+    const TransactionsPage(title: 'Transactions Page'),
     const Icon(Icons.person)
   ];
 

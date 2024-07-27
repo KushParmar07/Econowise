@@ -1,8 +1,10 @@
+import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'transaction.dart';
 import 'transactions_list.dart';
 import 'navigation_bar.dart';
 import 'budget.dart';
+import 'package:provider/provider.dart';
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage(
@@ -20,7 +22,6 @@ class TransactionsPage extends StatefulWidget {
 }
 
 class _TransactionsPageState extends State<TransactionsPage> {
-  late List<Transaction> transactions = widget.transactions;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
@@ -108,7 +109,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
     try {
       setState(() {
-        transactions.add(Transaction(
+        context.read<SaveData>().addTransaction(Transaction(
             nameController.text, int.parse(priceController.text), spent, date));
       });
     } on Exception {
@@ -126,7 +127,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
         PageRouteBuilder(
             pageBuilder: (context, animation1, animation2) => MenuSelecter(
                   budgets: widget.budgets,
-                  transactions: transactions,
+                  transactions: [],
                   index: 1,
                 ),
             transitionDuration: Duration.zero));
@@ -139,11 +140,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: transactions.isEmpty
-          ? const Center(
-              child: Text("Please Create a Transaction"),
-            )
-          : TransactionsList(transactions),
+      body: Consumer<SaveData>(builder: (context, transaction, child) {
+        return TransactionsList(transaction.transactions);
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: openDialog,
         tooltip: 'New Transaction',

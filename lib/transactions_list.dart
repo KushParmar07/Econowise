@@ -1,5 +1,7 @@
+import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'transaction.dart';
+import 'package:provider/provider.dart';
 
 class TransactionsList extends StatefulWidget {
   const TransactionsList(this.transactionItems, {super.key});
@@ -42,7 +44,7 @@ class _TransactionsListState extends State<TransactionsList> {
 
   void deleteTransaction(Transaction transaction) {
     setState(() {
-      widget.transactionItems.remove(transaction);
+      context.read<SaveData>().deleteTransaction(transaction);
     });
   }
 
@@ -50,7 +52,7 @@ class _TransactionsListState extends State<TransactionsList> {
   Widget build(BuildContext context) {
     return ListView.builder(
         itemCount: widget.transactionItems.length,
-        itemBuilder: (context, index) {
+        itemBuilder: (BuildContext context, index) {
           var transaction = widget.transactionItems[index];
           return Card(
             color: transaction.spent ? Colors.red : Colors.green,

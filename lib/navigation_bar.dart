@@ -27,7 +27,6 @@ class _MenuSelecterState extends State<MenuSelecter> {
   @override
   void initState() {
     super.initState();
-    print(currentTransactions);
   }
 
   late List<Widget> body = [

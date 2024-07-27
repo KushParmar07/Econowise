@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'transaction.dart';
 
 class SaveData extends ChangeNotifier {
-  List<Transaction> _transactions = [];
+  final List<Transaction> _transactions = [];
 
   List<Transaction> get transactions => _transactions;
 

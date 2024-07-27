@@ -89,7 +89,6 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   void updateTransactions() {
-    print(startDate);
     totalSpent = 0;
     for (var transaction in transactions) {
       if (transaction.spent &&

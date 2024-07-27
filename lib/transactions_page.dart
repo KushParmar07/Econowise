@@ -127,7 +127,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
         PageRouteBuilder(
             pageBuilder: (context, animation1, animation2) => MenuSelecter(
                   budgets: widget.budgets,
-                  transactions: [],
+                  transactions: const [],
                   index: 1,
                 ),
             transitionDuration: Duration.zero));

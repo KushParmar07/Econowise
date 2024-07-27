@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE86583)),
         useMaterial3: true,
       ),
-      home: BudgetPage(),
+      home: const BudgetPage(),
     );
   }
 }

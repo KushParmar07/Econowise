@@ -1,3 +1,4 @@
+import 'package:econowise/create_transaction.dart';
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'transaction.dart';
@@ -24,6 +25,9 @@ class _TransactionsListState extends State<TransactionsList> {
               title: const Text('Edit'),
               onTap: () {
                 Navigator.pop(context);
+                setState(() {
+                  editTransaction(transaction);
+                });
               },
             ),
             ListTile(
@@ -45,6 +49,17 @@ class _TransactionsListState extends State<TransactionsList> {
   void deleteTransaction(Transaction transaction) {
     setState(() {
       context.read<SaveData>().deleteTransaction(transaction);
+    });
+  }
+
+  void editTransaction(Transaction transaction) {
+    setState(() {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => TransactionScreen(
+                    currentTransaction: transaction,
+                  )));
     });
   }
 

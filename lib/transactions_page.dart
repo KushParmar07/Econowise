@@ -126,7 +126,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
         title: Text(widget.title),
       ),
       body: Consumer<SaveData>(builder: (context, data, child) {
-        return TransactionsList(data.transactions);
+        return data.transactions.isNotEmpty
+            ? TransactionsList(data.transactions)
+            : const Center(child: Text("Please Create A Transaction"));
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: openDialog,

@@ -1,8 +1,9 @@
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'budget.dart';
-import 'navigation_bar.dart';
+import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({
@@ -23,6 +24,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   String budgetDescriptionText = 'How much would you like to spend on ';
   DateTime? _startSelectedDate = DateTime.now();
   DateTime? _endSelectedDate = DateTime.now().add(const Duration(days: 31));
+  Color _selectedColor = Colors.purple;
 
   late List<Budget> currentBudgets = [];
 
@@ -112,6 +114,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       _startSelectedDate = widget.currentBudget!.startDate;
       _endSelectedDate = widget.currentBudget!.endDate;
       _selectedIcon = widget.currentBudget!.icon;
+      _selectedColor = widget.currentBudget!.color;
     }
   }
 
@@ -124,20 +127,22 @@ class _BudgetScreenState extends State<BudgetScreen> {
             int.parse(_budgetAmountController.text),
             _startSelectedDate,
             _endSelectedDate,
-            _selectedIcon));
+            _selectedIcon,
+            _selectedColor));
       }
     } else {
       if (_budgetTitleController.text != "" &&
           _budgetAmountController.text != "") {
         context.read<SaveData>().deleteBudget(widget.currentBudget ??
-            Budget(
-                "Placeholder", 100, DateTime.now(), DateTime.now(), Icons.abc));
+            Budget("Placeholder", 100, DateTime.now(), DateTime.now(),
+                Icons.abc, Colors.purple));
         context.read<SaveData>().addBudget(Budget(
             _budgetTitleController.text,
             int.parse(_budgetAmountController.text),
             _startSelectedDate,
             _endSelectedDate,
-            _selectedIcon));
+            _selectedIcon,
+            _selectedColor));
       }
     }
 
@@ -148,6 +153,48 @@ class _BudgetScreenState extends State<BudgetScreen> {
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const MenuSelecter(index: 0)));
   }
+
+  void pickColor(BuildContext context) => showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+          title: const Text("Pick A Color"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              buildColorPicker(),
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('SELECT'))
+            ],
+          )));
+
+  Widget buildColorPicker() => BlockPicker(
+          pickerColor: _selectedColor,
+          onColorChanged: (color) => setState(() {
+                _selectedColor = color;
+              }),
+          availableColors: const [
+            Colors.red,
+            Colors.pink,
+            Colors.purple,
+            Colors.deepPurple,
+            Colors.indigo,
+            Colors.blue,
+            Colors.lightBlue,
+            Colors.cyan,
+            Colors.teal,
+            Colors.green,
+            Colors.lightGreen,
+            Colors.lime,
+            Colors.yellow,
+            Colors.amber,
+            Colors.orange,
+            Colors.deepOrange,
+            Colors.brown,
+            Colors.grey,
+            Colors.blueGrey,
+            Colors.black,
+          ]);
 
   @override
   Widget build(BuildContext context) {
@@ -344,6 +391,45 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           ],
                         ),
                       ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Set Color',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 60,
+                    child: InkWell(
+                      onTap: () => {},
+                      borderRadius: BorderRadius.circular(30.0),
+                      child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100]!,
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              const Expanded(
+                                  child: Text(
+                                "Color:",
+                                style: TextStyle(fontSize: 20),
+                              )),
+                              FilledButton(
+                                onPressed: () => {pickColor(context)},
+                                style: FilledButton.styleFrom(
+                                    backgroundColor: _selectedColor),
+                                child: const SizedBox(
+                                  height: 40,
+                                  width: 70,
+                                ),
+                              )
+                            ],
+                          )),
                     ),
                   ),
 

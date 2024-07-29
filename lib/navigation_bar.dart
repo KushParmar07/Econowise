@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'transactions_page.dart';
-import 'budget_page.dart';
+import 'transaction_files/transactions_page.dart';
+import 'budget_files/budget_page_layout.dart';
 
 class MenuSelecter extends StatefulWidget {
   const MenuSelecter({super.key, required this.index});
@@ -20,7 +20,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
   }
 
   late List<Widget> body = [
-    const BudgetPage(title: 'Budget Page'),
+    const BudgetPage(),
     const TransactionsPage(title: 'Transactions Page'),
     const Icon(Icons.person)
   ];

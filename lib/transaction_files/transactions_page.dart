@@ -1,7 +1,6 @@
-import 'package:econowise/create_transaction.dart';
+import 'package:econowise/transaction_files/create_transaction.dart';
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
-import 'transaction.dart';
 import 'transactions_list.dart';
 import 'package:provider/provider.dart';
 

@@ -1,4 +1,4 @@
-import 'package:econowise/create_transaction.dart';
+import 'package:econowise/transaction_files/create_transaction.dart';
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'transaction.dart';
@@ -50,6 +50,12 @@ class _TransactionsListState extends State<TransactionsList> {
     setState(() {
       context.read<SaveData>().deleteTransaction(transaction);
     });
+
+    if (context.read<SaveData>().budgets.isNotEmpty) {
+      for (var budget in context.read<SaveData>().budgets) {
+        context.read<SaveData>().updateTransactions(budget);
+      }
+    }
   }
 
   void editTransaction(Transaction transaction) {

@@ -1,7 +1,7 @@
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'transaction.dart';
-import 'navigation_bar.dart';
+import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
 
 class TransactionScreen extends StatefulWidget {
@@ -72,6 +72,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
             int.parse(_transactionAmountController.text),
             spent,
             _selectedDate));
+      }
+    }
+
+    if (context.read<SaveData>().budgets.isNotEmpty) {
+      for (var budget in context.read<SaveData>().budgets) {
+        context.read<SaveData>().updateTransactions(budget);
       }
     }
 

@@ -7,6 +7,8 @@ class Budget {
   DateTime? endDate;
   IconData icon;
   int totalUsed = 0;
+  Color color = Colors.purple;
 
-  Budget(this.goal, this.budgetAmount, this.startDate, this.endDate, this.icon);
+  Budget(this.goal, this.budgetAmount, this.startDate, this.endDate, this.icon,
+      this.color);
 }

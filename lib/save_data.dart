@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'transaction.dart';
-import 'budget.dart';
+import 'transaction_files/transaction.dart';
+import 'budget_files/budget.dart';
 
 class SaveData extends ChangeNotifier {
   final List<Transaction> _transactions = [];
@@ -27,5 +27,20 @@ class SaveData extends ChangeNotifier {
   void deleteBudget(Budget budget) {
     budgets.remove(budget);
     notifyListeners();
+  }
+
+  void updateTransactions(Budget budget) {
+    int totalSpent = 0;
+    DateTime endDate = budget.endDate!;
+    DateTime startDate = budget.startDate!;
+
+    for (var transaction in transactions) {
+      if (transaction.spent &&
+          transaction.date!.isBefore(endDate) &&
+          transaction.date!.isAfter(startDate)) {
+        totalSpent += transaction.amount;
+      }
+    }
+    budgets[budgets.indexOf(budget)].totalUsed = totalSpent;
   }
 }

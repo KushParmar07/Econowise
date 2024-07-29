@@ -18,8 +18,6 @@ class BudgetPage extends StatefulWidget {
 }
 
 class _BudgetPageState extends State<BudgetPage> {
-  late TextEditingController goalController;
-  late TextEditingController budgetController;
   late Budget currentBudget;
   int totalSpent = 0;
   late DateTime startDate;
@@ -64,8 +62,6 @@ class _BudgetPageState extends State<BudgetPage> {
   @override
   void initState() {
     super.initState();
-    goalController = TextEditingController();
-    budgetController = TextEditingController();
 
     if (context.read<SaveData>().budgets.isNotEmpty) {
       currentBudget = context
@@ -73,7 +69,7 @@ class _BudgetPageState extends State<BudgetPage> {
           .budgets[context.read<SaveData>().budgets.length - 1];
     } else {
       currentBudget = Budget("Sample Budget", 100, DateTime.now(),
-          DateTime.now(), Icons.accessibility_rounded);
+          DateTime.now(), Icons.accessibility_rounded, Colors.purple);
     }
     startDate = currentBudget.startDate!;
     endDate = currentBudget.endDate!;
@@ -233,8 +229,7 @@ class _BudgetPageState extends State<BudgetPage> {
                                 ),
                               ],
                             ),
-                            progressColor:
-                                const Color.fromARGB(255, 175, 41, 41),
+                            progressColor: currentBudget.color,
                           ),
                         ),
                       ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'transaction.dart';
 import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class TransactionScreen extends StatefulWidget {
   const TransactionScreen({
@@ -78,9 +79,18 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (context.read<SaveData>().budgets.isNotEmpty) {
       for (var budget in context.read<SaveData>().budgets) {
         context.read<SaveData>().updateTransactions(budget);
+
+        if (budget.budgetAmount * 0.9 <= budget.totalUsed && spent) {
+          Fluttertoast.showToast(
+              msg: 'WARNING: "${budget.goal}" Is Almost Used Up',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.TOP,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 20);
+        }
       }
     }
-
     back();
   }
 

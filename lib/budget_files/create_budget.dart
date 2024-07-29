@@ -258,7 +258,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   // Category TextField (Moved below)
                   Center(
                     child: Container(
-                      width: 200, // Width of the TextField
+                      width: 300, // Width of the TextField
                       height: 48, // Height of the TextField
                       padding: const EdgeInsets.symmetric(horizontal: 15.0),
                       decoration: BoxDecoration(

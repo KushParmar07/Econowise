@@ -50,47 +50,42 @@ class _TransactionScreenState extends State<TransactionScreen> {
       _transactionAmountController.text =
           widget.currentTransaction!.amount.toString();
       _selectedDate = widget.currentTransaction!.date;
+      spent = widget.currentTransaction!.spent;
     }
   }
 
   void submit() {
-    if (widget.currentTransaction == null) {
-      if (_transactionTitleController.text != "" &&
-          _transactionAmountController.text != "") {
-        context.read<SaveData>().addTransaction(Transaction(
-            _transactionTitleController.text,
-            int.parse(_transactionAmountController.text),
-            spent,
-            _selectedDate));
-      }
-    } else {
-      if (_transactionTitleController.text != "" &&
-          _transactionAmountController.text != "") {
+    if (_transactionTitleController.text != "" &&
+        _transactionAmountController.text != "") {
+      if (widget.currentTransaction != null) {
         context.read<SaveData>().deleteTransaction(widget.currentTransaction ??
             Transaction("Placeholder", 500, spent, DateTime.now()));
-        context.read<SaveData>().addTransaction(Transaction(
-            _transactionTitleController.text,
-            int.parse(_transactionAmountController.text),
-            spent,
-            _selectedDate));
       }
-    }
+      context.read<SaveData>().addTransaction(Transaction(
+          _transactionTitleController.text,
+          int.parse(_transactionAmountController.text),
+          spent,
+          _selectedDate));
 
-    if (context.read<SaveData>().budgets.isNotEmpty) {
-      for (var budget in context.read<SaveData>().budgets) {
-        context.read<SaveData>().updateTransactions(budget);
+      if (context.read<SaveData>().budgets.isNotEmpty) {
+        for (var budget in context.read<SaveData>().budgets) {
+          context.read<SaveData>().updateTransactions(budget);
 
-        if (budget.budgetAmount * 0.9 <= budget.totalUsed && spent) {
-          Fluttertoast.showToast(
-              msg: 'WARNING: "${budget.goal}" Is Almost Used Up',
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.TOP,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 20);
+          if (budget.budgetAmount * 0.9 <= budget.totalUsed && spent) {
+            Fluttertoast.showToast(
+                msg: budget.totalUsed < budget.budgetAmount
+                    ? 'WARNING: "${budget.goal}" Is Almost Used Up'
+                    : 'WARNING: "${budget.goal}" Has Been Used Up',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.TOP,
+                backgroundColor: budget.color,
+                textColor: Colors.white,
+                fontSize: 20);
+          }
         }
       }
     }
+
     back();
   }
 

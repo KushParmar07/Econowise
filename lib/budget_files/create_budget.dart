@@ -24,7 +24,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   String budgetDescriptionText = 'How much would you like to spend on ';
   DateTime? _startSelectedDate = DateTime.now();
   DateTime? _endSelectedDate = DateTime.now().add(const Duration(days: 31));
-  Color _selectedColor = Colors.purple;
+  Color _selectedColor = Colors.blue;
 
   late List<Budget> currentBudgets = [];
 
@@ -118,32 +118,25 @@ class _BudgetScreenState extends State<BudgetScreen> {
     }
   }
 
-  void submit() {
-    if (widget.currentBudget == null) {
-      if (_budgetTitleController.text != "" &&
-          _budgetAmountController.text != "") {
-        context.read<SaveData>().addBudget(Budget(
-            _budgetTitleController.text,
-            int.parse(_budgetAmountController.text),
-            _startSelectedDate,
-            _endSelectedDate,
-            _selectedIcon,
-            _selectedColor));
-      }
-    } else {
-      if (_budgetTitleController.text != "" &&
-          _budgetAmountController.text != "") {
+  void submit() async {
+    if (_budgetTitleController.text != "" &&
+        _budgetAmountController.text != "") {
+      if (widget.currentBudget != null) {
         context.read<SaveData>().deleteBudget(widget.currentBudget ??
             Budget("Placeholder", 100, DateTime.now(), DateTime.now(),
-                Icons.abc, Colors.purple));
-        context.read<SaveData>().addBudget(Budget(
-            _budgetTitleController.text,
-            int.parse(_budgetAmountController.text),
-            _startSelectedDate,
-            _endSelectedDate,
-            _selectedIcon,
-            _selectedColor));
+                Icons.abc, Colors.blue));
       }
+      context.read<SaveData>().addBudget(Budget(
+          _budgetTitleController.text,
+          int.parse(_budgetAmountController.text),
+          _startSelectedDate,
+          _endSelectedDate,
+          _selectedIcon,
+          _selectedColor));
+
+      context.read<SaveData>().updateTransactions(context
+          .read<SaveData>()
+          .budgets[context.read<SaveData>().budgets.length - 1]);
     }
 
     back();

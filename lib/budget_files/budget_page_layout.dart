@@ -4,6 +4,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'budget.dart';
 import 'package:provider/provider.dart';
 import 'create_budget.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class BudgetPage extends StatefulWidget {
   const BudgetPage({super.key});
@@ -30,6 +31,7 @@ class _BudgetPageState extends State<BudgetPage> {
           budgets.firstWhere((budget) => budget.goal == selectedBudget);
       startDate = selectedBudgetDetails.startDate!;
       endDate = selectedBudgetDetails.endDate!;
+      warning(selectedBudgetDetails);
     } else {
       selectedBudget = "";
       selectedBudgetDetails = Budget("Sample Budget", 100, DateTime.now(),
@@ -50,6 +52,22 @@ class _BudgetPageState extends State<BudgetPage> {
       selectedBudgetDetails =
           budgets.firstWhere((budget) => budget.goal == selectedBudget);
     });
+
+    warning(budget);
+  }
+
+  void warning(Budget budget) {
+    if (budget.budgetAmount * 0.85 < budget.totalUsed) {
+      Fluttertoast.showToast(
+          msg: budget.totalUsed < budget.budgetAmount
+              ? 'WARNING: "${budget.goal}" Is Almost Used Up'
+              : 'WARNING: "${budget.goal}" Has Been Used Up',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: budget.color,
+          textColor: Colors.white,
+          fontSize: 20);
+    }
   }
 
   void showBudgetOptions(Budget budget) {
@@ -90,6 +108,7 @@ class _BudgetPageState extends State<BudgetPage> {
           budget.goal == selectedBudget) {
         selectedBudget = context.read<SaveData>().budgets[0].goal;
         selectedBudgetDetails = context.read<SaveData>().budgets[0];
+        warning(selectedBudgetDetails);
       }
     });
   }

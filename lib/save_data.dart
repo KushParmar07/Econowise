@@ -36,11 +36,14 @@ class SaveData extends ChangeNotifier {
 
     for (var transaction in transactions) {
       if (transaction.spent &&
-          transaction.date!.isBefore(endDate) &&
-          transaction.date!.isAfter(startDate)) {
+              transaction.date!.isBefore(endDate) &&
+              transaction.date!.isAfter(startDate) ||
+          DateUtils.isSameDay(startDate, transaction.date!) &&
+              transaction.date!.isBefore(endDate)) {
         totalSpent += transaction.amount;
       }
     }
+
     budgets[budgets.indexOf(budget)].totalUsed = totalSpent;
   }
 }

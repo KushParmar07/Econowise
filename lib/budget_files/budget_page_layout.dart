@@ -34,8 +34,13 @@ class _BudgetPageState extends State<BudgetPage> {
       warning(selectedBudgetDetails);
     } else {
       selectedBudget = "";
-      selectedBudgetDetails = Budget("Sample Budget", 100, DateTime.now(),
-          DateTime.now(), Icons.accessibility_rounded, Colors.purple);
+      selectedBudgetDetails = Budget(
+          "Sample Budget",
+          100,
+          DateTime.now(),
+          DateTime.now(),
+          Icons.accessibility_rounded,
+          Color.fromARGB(255, 179, 136, 235));
       startDate = DateTime.now();
       endDate = DateTime.now();
     }
@@ -130,19 +135,18 @@ class _BudgetPageState extends State<BudgetPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Budget Page"),
+        title: const Text("Budget Page"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        centerTitle: true,
       ),
       body: budgets.isNotEmpty
           ? Column(
               children: [
-                // Budget Cards and Add Button in a Row
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 SizedBox(
                   height: 160,
                   child: Row(
                     children: [
-                      // Add Button (taller, thinner)
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: InkWell(
@@ -150,7 +154,7 @@ class _BudgetPageState extends State<BudgetPage> {
                           borderRadius: BorderRadius.circular(10),
                           child: Ink(
                             width: 50,
-                            height: 140,
+                            height: 100,
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(10),
@@ -159,10 +163,7 @@ class _BudgetPageState extends State<BudgetPage> {
                           ),
                         ),
                       ),
-
-                      // Budget Category Cards
                       Expanded(
-                        // This allows the cards to fill remaining space
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: budgets.length,
@@ -177,11 +178,20 @@ class _BudgetPageState extends State<BudgetPage> {
                                 child: Ink(
                                   width: 120,
                                   decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? budget.color
-                                        : budget.color.withOpacity(0.3),
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
+                                      color: isSelected
+                                          ? budget.color.withOpacity(0.9)
+                                          : budget.color.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(15),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                  color: budget.color
+                                                      .withOpacity(0.2),
+                                                  spreadRadius: 3,
+                                                  blurRadius: 5,
+                                                  offset: Offset(0, 10))
+                                            ]
+                                          : null),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -191,16 +201,20 @@ class _BudgetPageState extends State<BudgetPage> {
                                       Text(
                                         budget.goal,
                                         style: TextStyle(
-                                          fontWeight: isSelected
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                        ),
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            color: Colors.white,
+                                            fontSize: 16),
                                       ),
                                       Text(
-                                          '\$${budget.totalUsed.toStringAsFixed(2)}'),
+                                          '\$${budget.totalUsed.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                              color: Colors.white)),
                                       Text(
                                         'of \$${budget.budgetAmount.toStringAsFixed(2)}',
-                                        style: const TextStyle(fontSize: 12),
+                                        style: const TextStyle(
+                                            fontSize: 12, color: Colors.white),
                                       ),
                                       IconButton(
                                           onPressed: () {
@@ -218,7 +232,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 50),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -226,7 +240,9 @@ class _BudgetPageState extends State<BudgetPage> {
                         color: const Color.fromARGB(255, 228, 222, 222)
                             .withOpacity(0.3),
                       ),
-                      borderRadius: BorderRadius.all(Radius.circular(40)),
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40)),
                       color: const Color.fromARGB(255, 228, 222, 222)
                           .withOpacity(0.3),
                     ),

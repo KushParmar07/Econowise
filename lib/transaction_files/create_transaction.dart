@@ -98,44 +98,45 @@ class _TransactionScreenState extends State<TransactionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor:
-              const Color(0xFFF59E0B), // Make the AppBar transparent
-          title: Text('Create your transaction',
+          backgroundColor: const Color(0xFFF59E0B),
+          title: const Text('Create Transaction',
               style: TextStyle(
-                  color: Colors.purple[400],
+                  color: Colors.white,
                   fontWeight: FontWeight.w600,
                   fontSize: 32)),
           elevation: 0,
           leading:
               IconButton(onPressed: back, icon: const Icon(Icons.arrow_back)),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                  Color.fromARGB(255, 255, 131, 90),
+                  Color.fromARGB(255, 229, 176, 158)
+                ])),
+          ),
+          centerTitle: true,
         ),
         body: Stack(children: <Widget>[
-          // Background with curved shape (CustomClipper)
-          ClipPath(
-            clipper: BackgroundClipper(),
-            child: Container(
-              height: 250, // Adjust height as needed
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFFF59E0B),
-                    Color.fromARGB(255, 253, 206, 145)
-                  ], // Orange shades
-                ),
-              ),
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(25.0),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 70),
-                  // Category TextField (Moved below)
-                  Center(
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  height: 100, // Adjust height as needed
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(100),
+                        bottomRight: Radius.circular(100)),
+                    gradient: LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 255, 131, 90),
+                        Color.fromARGB(255, 229, 176, 158)
+                      ], // Orange shades
+                    ),
+                  ),
+                  child: Center(
                     child: Container(
                       width: 300, // Width of the TextField
                       height: 48, // Height of the TextField
@@ -164,163 +165,174 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 90),
-
-                  const Text(
-                    'Set transaction amount',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    transactionDescriptionText,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 60,
-                    child: TextField(
-                      controller: _transactionAmountController,
-                      decoration: InputDecoration(
-                        hintText: '\$0.00',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100]!,
-                        suffixText: 'Transaction amount',
-                        suffixStyle: const TextStyle(color: Colors.grey),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(25.0),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Set transaction amount',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      style: const TextStyle(fontSize: 24),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Was This An Expense?',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                      height: 50,
-                      child: InkWell(
-                          borderRadius: BorderRadius.circular(30.0),
+                      const SizedBox(height: 5),
+                      Text(
+                        transactionDescriptionText,
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 60,
+                        child: TextField(
+                          controller: _transactionAmountController,
+                          decoration: InputDecoration(
+                            hintText: '\$0.00',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[100]!,
+                            suffixText: 'Transaction amount',
+                            suffixStyle: const TextStyle(color: Colors.grey),
+                          ),
+                          style: const TextStyle(fontSize: 24),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Was This An Expense?',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 15),
+                      SizedBox(
+                          height: 50,
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(30.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.grey[100]!,
-                                  borderRadius: BorderRadius.circular(30.0)),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Expanded(
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      "Expense",
-                                      style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold),
+                              borderRadius: BorderRadius.circular(30.0),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(30.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.grey[100]!,
+                                      borderRadius:
+                                          BorderRadius.circular(30.0)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: Expanded(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          "Expense",
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Switch(
+                                            value: spent,
+                                            activeColor: Colors.red,
+                                            onChanged: (bool value) {
+                                              {
+                                                setState(() {
+                                                  spent = value;
+                                                });
+                                              }
+                                            }),
+                                      ],
                                     ),
-                                    Switch(
-                                        value: spent,
-                                        activeColor: Colors.red,
-                                        onChanged: (bool value) {
-                                          {
-                                            setState(() {
-                                              spent = value;
-                                            });
-                                          }
-                                        }),
+                                  ),
+                                ),
+                              ))),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Set Transaction Date',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 30,
+                        child: InkWell(
+                          onTap: () => _selectStartDate(context),
+                          borderRadius: BorderRadius.circular(30.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100]!,
+                              borderRadius: BorderRadius.circular(30.0),
+                            ),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _selectedDate == null
+                                        ? DateTime.now()
+                                            .toString()
+                                            .split(" ")[0]
+                                        : _selectedDate!
+                                            .toString()
+                                            .split(" ")[0],
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
+                                ),
+                                const Icon(Icons.calendar_today,
+                                    color: Colors.grey),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Center(
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 60,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              submit();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                            ),
+                            child: Ink(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color.fromARGB(255, 255, 131, 90),
+                                    Color.fromARGB(255, 128, 147, 241)
                                   ],
+                                ),
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                              child: Container(
+                                constraints:
+                                    const BoxConstraints(minHeight: 60),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  widget.currentTransaction == null
+                                      ? 'Create Transaction'
+                                      : 'Save Transaction',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
-                          ))),
-
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Set Transaction Date',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 30,
-                    child: InkWell(
-                      onTap: () => _selectStartDate(context),
-                      borderRadius: BorderRadius.circular(30.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100]!,
-                          borderRadius: BorderRadius.circular(30.0),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _selectedDate == null
-                                    ? DateTime.now().toString().split(" ")[0]
-                                    : _selectedDate!.toString().split(" ")[0],
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            ),
-                            const Icon(Icons.calendar_today,
-                                color: Colors.grey),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-                  Center(
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          submit();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                          ),
-                        ),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [Colors.orange, Color(0xFF6750A4)],
-                            ),
-                            borderRadius: BorderRadius.circular(30.0),
-                          ),
-                          child: Container(
-                            constraints: const BoxConstraints(minHeight: 60),
-                            alignment: Alignment.center,
-                            child: Text(
-                              widget.currentTransaction == null
-                                  ? 'Create Transaction'
-                                  : 'Save Transaction',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ]));

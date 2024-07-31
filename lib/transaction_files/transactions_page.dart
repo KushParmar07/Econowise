@@ -34,6 +34,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        centerTitle: true,
       ),
       body: Consumer<SaveData>(builder: (context, data, child) {
         return data.transactions.isNotEmpty

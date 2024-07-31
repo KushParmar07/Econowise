@@ -15,7 +15,7 @@ class BudgetPage extends StatefulWidget {
 
 class _BudgetPageState extends State<BudgetPage> {
   late List<Budget> budgets;
-  late String selectedBudget;
+  late Budget selectedBudget;
   int totalSpent = 0;
   late Budget selectedBudgetDetails;
   late DateTime startDate;
@@ -26,14 +26,20 @@ class _BudgetPageState extends State<BudgetPage> {
     super.initState();
     budgets = context.read<SaveData>().budgets;
     if (budgets.isNotEmpty) {
-      selectedBudget = budgets[0].goal;
+      selectedBudget = budgets[0];
       selectedBudgetDetails =
-          budgets.firstWhere((budget) => budget.goal == selectedBudget);
+          budgets.firstWhere((budget) => budget == selectedBudget);
       startDate = selectedBudgetDetails.startDate!;
       endDate = selectedBudgetDetails.endDate!;
       warning(selectedBudgetDetails);
     } else {
-      selectedBudget = "";
+      selectedBudget = Budget(
+          "Sample Budget",
+          100,
+          DateTime.now(),
+          DateTime.now(),
+          Icons.accessibility_rounded,
+          Color.fromARGB(255, 179, 136, 235));
       selectedBudgetDetails = Budget(
           "Sample Budget",
           100,
@@ -53,9 +59,9 @@ class _BudgetPageState extends State<BudgetPage> {
 
   void changeActive(Budget budget) {
     setState(() {
-      selectedBudget = budget.goal;
+      selectedBudget = budget;
       selectedBudgetDetails =
-          budgets.firstWhere((budget) => budget.goal == selectedBudget);
+          budgets.firstWhere((budget) => budget == selectedBudget);
     });
 
     warning(budget);
@@ -111,7 +117,7 @@ class _BudgetPageState extends State<BudgetPage> {
       context.read<SaveData>().deleteBudget(budget);
       if (context.read<SaveData>().budgets.isNotEmpty &&
           budget.goal == selectedBudget) {
-        selectedBudget = context.read<SaveData>().budgets[0].goal;
+        selectedBudget = context.read<SaveData>().budgets[0];
         selectedBudgetDetails = context.read<SaveData>().budgets[0];
         warning(selectedBudgetDetails);
       }
@@ -169,7 +175,7 @@ class _BudgetPageState extends State<BudgetPage> {
                           itemCount: budgets.length,
                           itemBuilder: (context, index) {
                             final budget = budgets[index];
-                            final isSelected = budget.goal == selectedBudget;
+                            final isSelected = budget == selectedBudget;
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: InkWell(
@@ -250,7 +256,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     child: Column(
                       children: [
                         Text(
-                          selectedBudget,
+                          selectedBudget.goal,
                           style: const TextStyle(
                               fontSize: 24, fontWeight: FontWeight.bold),
                         ),

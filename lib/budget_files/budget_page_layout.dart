@@ -147,57 +147,67 @@ class _BudgetPageState extends State<BudgetPage> {
       ),
       body: budgets.isNotEmpty
           ? Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 15),
                 SizedBox(
-                  height: 160,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: InkWell(
-                          onTap: createBudget,
-                          borderRadius: BorderRadius.circular(10),
-                          child: Ink(
-                            width: 50,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.add, size: 30),
+                  height: 200,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal, // Scroll horizontally
+                    itemCount: budgets.length + 1, // Include the "Add" button
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              InkWell(
+                                onTap: createBudget,
+                                borderRadius: BorderRadius.circular(10),
+                                child: Ink(
+                                  width: 50,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.add, size: 30),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: budgets.length,
-                          itemBuilder: (context, index) {
-                            final budget = budgets[index];
-                            final isSelected = budget == selectedBudget;
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: InkWell(
+                        );
+                      } else {
+                        final budget = budgets[index - 1];
+                        final isSelected = budget == selectedBudget;
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              InkWell(
                                 onTap: () => changeActive(budget),
                                 borderRadius: BorderRadius.circular(15),
                                 child: Ink(
-                                  width: 120,
+                                  width: isSelected ? 130 : 120,
+                                  height: isSelected ? 160 : 140,
                                   decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? budget.color.withOpacity(0.9)
-                                          : budget.color.withOpacity(0.3),
-                                      borderRadius: BorderRadius.circular(15),
-                                      boxShadow: isSelected
-                                          ? [
-                                              BoxShadow(
-                                                  color: budget.color
-                                                      .withOpacity(0.2),
-                                                  spreadRadius: 3,
-                                                  blurRadius: 5,
-                                                  offset: Offset(0, 10))
-                                            ]
-                                          : null),
+                                    color: isSelected
+                                        ? budget.color.withOpacity(0.9)
+                                        : budget.color.withOpacity(0.3),
+                                    borderRadius: BorderRadius.circular(15),
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                                color: budget.color
+                                                    .withOpacity(0.2),
+                                                spreadRadius: 3,
+                                                blurRadius: 5,
+                                                offset: Offset(0, 10))
+                                          ]
+                                        : null,
+                                  ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -231,14 +241,14 @@ class _BudgetPageState extends State<BudgetPage> {
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                            ],
+                          ),
+                        );
+                      }
+                    },
                   ),
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 20),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -255,6 +265,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     width: size.width,
                     child: Column(
                       children: [
+                        const SizedBox(height: 15),
                         Text(
                           selectedBudget.goal,
                           style: const TextStyle(

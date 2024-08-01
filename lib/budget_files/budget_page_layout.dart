@@ -39,14 +39,14 @@ class _BudgetPageState extends State<BudgetPage> {
           DateTime.now(),
           DateTime.now(),
           Icons.accessibility_rounded,
-          Color.fromARGB(255, 179, 136, 235));
+          Color.fromARGB(255, 179, 136, 235), []);
       selectedBudgetDetails = Budget(
           "Sample Budget",
           100,
           DateTime.now(),
           DateTime.now(),
           Icons.accessibility_rounded,
-          Color.fromARGB(255, 179, 136, 235));
+          Color.fromARGB(255, 179, 136, 235), []);
       startDate = DateTime.now();
       endDate = DateTime.now();
     }

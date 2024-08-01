@@ -1,6 +1,8 @@
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:multiselect/multiselect.dart';
 import 'budget.dart';
 import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +28,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   DateTime? _startSelectedDate = DateTime.now();
   DateTime? _endSelectedDate = DateTime.now().add(const Duration(days: 31));
   Color _selectedColor = const Color.fromARGB(255, 255, 131, 90);
+  List<String> _selectedCategories = [];
 
   late List<Budget> currentBudgets = [];
 
@@ -116,6 +119,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       _endSelectedDate = widget.currentBudget!.endDate;
       _selectedIcon = widget.currentBudget!.icon;
       _selectedColor = widget.currentBudget!.color;
+      _selectedCategories = widget.currentBudget!.categories;
     }
   }
 
@@ -125,7 +129,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       if (widget.currentBudget != null) {
         context.read<SaveData>().deleteBudget(widget.currentBudget ??
             Budget("Placeholder", 100, DateTime.now(), DateTime.now(),
-                Icons.abc, Colors.blue));
+                Icons.abc, Colors.blue, _selectedCategories));
       }
       context.read<SaveData>().addBudget(Budget(
           _budgetTitleController.text,
@@ -133,7 +137,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
           _startSelectedDate,
           _endSelectedDate,
           _selectedIcon,
-          _selectedColor));
+          _selectedColor,
+          _selectedCategories));
 
       context.read<SaveData>().updateTransactions(context
           .read<SaveData>()
@@ -168,6 +173,100 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   child: const Text('SELECT'))
             ],
           )));
+
+  Future<void> modifyCategories() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Categories'),
+          content: StatefulBuilder(builder: (context, setState) {
+            return Container(
+              width: double.maxFinite,
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: context.read<SaveData>().categories.length + 1,
+                  itemBuilder: (BuildContext context, index) {
+                    if (index == 0) {
+                      return ElevatedButton(
+                          onPressed: createCategory,
+                          child: Text("New Category"));
+                    } else {
+                      var category =
+                          context.read<SaveData>().categories[index - 1];
+                      return Card(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(category),
+                            IconButton(
+                                onPressed: () => {
+                                      setState(
+                                        () {
+                                          context
+                                              .read<SaveData>()
+                                              .deleteCategory(category);
+                                          if (_selectedCategories
+                                              .contains(category)) {
+                                            _selectedCategories
+                                                .remove(category);
+                                          }
+                                        },
+                                      )
+                                    },
+                                icon: const Icon(Icons.delete))
+                          ],
+                        ),
+                      );
+                    }
+                  }),
+            );
+          }),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Done'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> createCategory() async {
+    TextEditingController categoryTitle = TextEditingController();
+    Navigator.of(context).pop();
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Create A Category'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(controller: categoryTitle),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Create'),
+              onPressed: () {
+                setState(() {
+                  context.read<SaveData>().addCategory(categoryTitle.text);
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget buildColorPicker() => BlockPicker(
           pickerColor: _selectedColor,
@@ -409,14 +508,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
                       const SizedBox(height: 8),
                       const Text(
-                        'Set Color',
+                        'Select Colour',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
                       SizedBox(
                         height: 60,
                         child: InkWell(
-                          onTap: () => {},
                           borderRadius: BorderRadius.circular(30.0),
                           child: Container(
                               decoration: BoxDecoration(
@@ -445,6 +543,58 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                   )
                                 ],
                               )),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Select Categories To Add To Budget',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const Text(
+                        '(Leave Blank For All To Affect)',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 50,
+                        child: InkWell(
+                          onTap: () => {},
+                          borderRadius: BorderRadius.circular(30.0),
+                          child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100]!,
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Expanded(
+                                  child: Row(
+                                children: [
+                                  Expanded(child: Consumer<SaveData>(
+                                      builder: (context, saveData, _) {
+                                    return DropDownMultiSelect(
+                                      selectedValuesStyle: const TextStyle(
+                                          color:
+                                              Color.fromARGB(0, 255, 255, 255)),
+                                      separator: ', ',
+                                      onChanged: (List<String> x) {
+                                        setState(() {
+                                          _selectedCategories = x;
+                                        });
+                                        print(context
+                                            .read<SaveData>()
+                                            .categories);
+                                      },
+                                      options: saveData.categories,
+                                      selectedValues: _selectedCategories,
+                                      whenEmpty: 'Select Categories',
+                                    );
+                                  })),
+                                  IconButton.filled(
+                                      onPressed: modifyCategories,
+                                      icon: const Icon(Icons.more_vert))
+                                ],
+                              ))),
                         ),
                       ),
 

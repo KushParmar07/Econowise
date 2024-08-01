@@ -5,9 +5,11 @@ import 'budget_files/budget.dart';
 class SaveData extends ChangeNotifier {
   final List<Transaction> _transactions = [];
   final List<Budget> _budgets = [];
+  final List<String> _categories = ["Option 1", "Option 2", "Option 3"];
 
   List<Transaction> get transactions => _transactions;
   List<Budget> get budgets => _budgets;
+  List<String> get categories => _categories;
 
   void addTransaction(Transaction transaction) {
     transactions.add(transaction);
@@ -19,6 +21,13 @@ class SaveData extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addCategory(String category) {
+    if (!categories.contains(category)) {
+      categories.add(category);
+    }
+    notifyListeners();
+  }
+
   void deleteTransaction(Transaction transaction) {
     transactions.remove(transaction);
     notifyListeners();
@@ -26,6 +35,11 @@ class SaveData extends ChangeNotifier {
 
   void deleteBudget(Budget budget) {
     budgets.remove(budget);
+    notifyListeners();
+  }
+
+  void deleteCategory(String category) {
+    categories.remove(category);
     notifyListeners();
   }
 

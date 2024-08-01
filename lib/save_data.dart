@@ -30,7 +30,7 @@ class SaveData extends ChangeNotifier {
   }
 
   void updateTransactions(Budget budget) {
-    int totalSpent = 0;
+    double totalSpent = 0;
     DateTime endDate = budget.endDate!;
     DateTime startDate = budget.startDate!;
 

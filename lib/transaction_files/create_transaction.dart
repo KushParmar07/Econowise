@@ -63,7 +63,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
       }
       context.read<SaveData>().addTransaction(Transaction(
           _transactionTitleController.text,
-          int.parse(_transactionAmountController.text),
+          double.parse(_transactionAmountController.text),
           spent,
           _selectedDate));
 
@@ -84,9 +84,16 @@ class _TransactionScreenState extends State<TransactionScreen> {
           }
         }
       }
+      back();
+    } else {
+      Fluttertoast.showToast(
+          msg: "One or more required fields have been left blank",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 20);
     }
-
-    back();
   }
 
   void back() {

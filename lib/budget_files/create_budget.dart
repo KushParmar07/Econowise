@@ -1,5 +1,6 @@
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'budget.dart';
 import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
@@ -128,7 +129,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       }
       context.read<SaveData>().addBudget(Budget(
           _budgetTitleController.text,
-          int.parse(_budgetAmountController.text),
+          double.parse(_budgetAmountController.text),
           _startSelectedDate,
           _endSelectedDate,
           _selectedIcon,
@@ -137,9 +138,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
       context.read<SaveData>().updateTransactions(context
           .read<SaveData>()
           .budgets[context.read<SaveData>().budgets.length - 1]);
+      back();
+    } else {
+      Fluttertoast.showToast(
+          msg: "One or more required fields have been left blank",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 20);
     }
-
-    back();
   }
 
   void back() {

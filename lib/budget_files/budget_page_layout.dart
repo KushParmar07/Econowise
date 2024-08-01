@@ -248,7 +248,6 @@ class _BudgetPageState extends State<BudgetPage> {
                     },
                   ),
                 ),
-                const SizedBox(height: 20),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -263,47 +262,49 @@ class _BudgetPageState extends State<BudgetPage> {
                           .withOpacity(0.3),
                     ),
                     width: size.width,
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 15),
-                        Text(
-                          selectedBudget.goal,
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        Icon(
-                          selectedBudgetDetails.icon,
-                          size: 60,
-                          color: selectedBudgetDetails.color,
-                        ),
-                        const SizedBox(height: 35),
-                        CircularPercentIndicator(
-                          radius: 150,
-                          lineWidth: 35,
-                          percent: percentageUsed,
-                          progressColor: selectedBudgetDetails.color,
-                          backgroundColor:
-                              selectedBudgetDetails.color.withOpacity(0.2),
-                          center: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('Amount Used'),
-                              Text(
-                                '\$${selectedBudgetDetails.totalUsed.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'of \$${selectedBudgetDetails.budgetAmount.toStringAsFixed(2)}',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ],
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 15),
+                          Text(
+                            selectedBudget.goal,
+                            style: const TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 10),
+                          Icon(
+                            selectedBudgetDetails.icon,
+                            size: 60,
+                            color: selectedBudgetDetails.color,
+                          ),
+                          const SizedBox(height: 35),
+                          CircularPercentIndicator(
+                            radius: 150,
+                            lineWidth: 35,
+                            percent: percentageUsed,
+                            progressColor: selectedBudgetDetails.color,
+                            backgroundColor:
+                                selectedBudgetDetails.color.withOpacity(0.2),
+                            center: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text('Amount Used'),
+                                Text(
+                                  '\$${selectedBudgetDetails.totalUsed.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'of \$${selectedBudgetDetails.budgetAmount.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

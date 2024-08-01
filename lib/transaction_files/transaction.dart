@@ -1,6 +1,6 @@
 class Transaction {
   String title;
-  int amount;
+  double amount;
   bool spent;
   DateTime? date;
 

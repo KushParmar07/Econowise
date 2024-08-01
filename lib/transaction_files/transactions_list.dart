@@ -107,7 +107,13 @@ class _TransactionsListState extends State<TransactionsList> {
                                 fontSize: 12, color: Colors.black38),
                           ),
                         ),
-                        Flexible(child: Text(transaction.category))
+                        transaction.category != ""
+                            ? Flexible(
+                                child: Text(
+                                    "Category : ${transaction.category}",
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.black38)))
+                            : Container()
                       ],
                     ),
                   ),

@@ -392,55 +392,63 @@ class _TransactionScreenState extends State<TransactionScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Text(
-                        "Select Transaction Category (Blank For All)",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      spent
+                          ? const Text(
+                              "Select Transaction Category (Blank For All)",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            )
+                          : const SizedBox(),
                       const SizedBox(
                         height: 20,
                       ),
-                      SizedBox(
-                        height: 50,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100]!,
+                      spent
+                          ? SizedBox(
+                              height: 50,
+                              child: InkWell(
                                 borderRadius: BorderRadius.circular(30.0),
+                                child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100]!,
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
+                                    child: Expanded(
+                                        child: Row(
+                                      children: [
+                                        Consumer<SaveData>(
+                                            builder: (context, saveData, _) {
+                                          return Expanded(
+                                            child: DropdownMenu(
+                                                initialSelection:
+                                                    selectedCategory,
+                                                controller: categoryTitle,
+                                                onSelected: (String? value) {
+                                                  // This is called when the user selects an item.
+                                                  setState(() {
+                                                    selectedCategory = value!;
+                                                  });
+                                                },
+                                                dropdownMenuEntries:
+                                                    saveData.categories.map<
+                                                            DropdownMenuEntry<
+                                                                String>>(
+                                                        (String value) {
+                                                  return DropdownMenuEntry<
+                                                          String>(
+                                                      value: value,
+                                                      label: value);
+                                                }).toList()),
+                                          );
+                                        }),
+                                        IconButton(
+                                            onPressed: modifyCategories,
+                                            icon: const Icon(Icons.more_vert))
+                                      ],
+                                    ))),
                               ),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Expanded(
-                                  child: Row(
-                                children: [
-                                  Consumer<SaveData>(
-                                      builder: (context, saveData, _) {
-                                    return Expanded(
-                                      child: DropdownMenu(
-                                          initialSelection: selectedCategory,
-                                          controller: categoryTitle,
-                                          onSelected: (String? value) {
-                                            // This is called when the user selects an item.
-                                            setState(() {
-                                              selectedCategory = value!;
-                                            });
-                                          },
-                                          dropdownMenuEntries: saveData
-                                              .categories
-                                              .map<DropdownMenuEntry<String>>(
-                                                  (String value) {
-                                            return DropdownMenuEntry<String>(
-                                                value: value, label: value);
-                                          }).toList()),
-                                    );
-                                  }),
-                                  IconButton(
-                                      onPressed: modifyCategories,
-                                      icon: const Icon(Icons.more_vert))
-                                ],
-                              ))),
-                        ),
-                      ),
+                            )
+                          : const SizedBox(),
                       const SizedBox(height: 40),
                       Center(
                         child: SizedBox(

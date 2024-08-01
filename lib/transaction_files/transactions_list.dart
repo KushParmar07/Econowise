@@ -75,6 +75,12 @@ class _TransactionsListState extends State<TransactionsList> {
         itemCount: widget.transactionItems.length,
         itemBuilder: (BuildContext context, index) {
           var transaction = widget.transactionItems[index];
+          if (!context
+              .read<SaveData>()
+              .categories
+              .contains(transaction.category)) {
+            transaction.category = "";
+          }
           return Card(
             color: transaction.spent ? Colors.red : Colors.green,
             child: IntrinsicHeight(
@@ -101,6 +107,7 @@ class _TransactionsListState extends State<TransactionsList> {
                                 fontSize: 12, color: Colors.black38),
                           ),
                         ),
+                        Flexible(child: Text(transaction.category))
                       ],
                     ),
                   ),

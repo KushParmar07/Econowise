@@ -3,6 +3,7 @@ class Transaction {
   double amount;
   bool spent;
   DateTime? date;
+  String category;
 
-  Transaction(this.title, this.amount, this.spent, this.date);
+  Transaction(this.title, this.amount, this.spent, this.date, this.category);
 }

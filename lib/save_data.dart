@@ -5,7 +5,7 @@ import 'budget_files/budget.dart';
 class SaveData extends ChangeNotifier {
   final List<Transaction> _transactions = [];
   final List<Budget> _budgets = [];
-  final List<String> _categories = ["Option 1", "Option 2", "Option 3"];
+  final List<String> _categories = [""];
 
   List<Transaction> get transactions => _transactions;
   List<Budget> get budgets => _budgets;
@@ -54,7 +54,11 @@ class SaveData extends ChangeNotifier {
               transaction.date!.isAfter(startDate) ||
           DateUtils.isSameDay(startDate, transaction.date!) &&
               transaction.date!.isBefore(endDate)) {
-        totalSpent += transaction.amount;
+        if (budget.categories.contains(transaction.category) ||
+            budget.categories.isEmpty ||
+            transaction.category == "") {
+          totalSpent += transaction.amount;
+        }
       }
     }
 

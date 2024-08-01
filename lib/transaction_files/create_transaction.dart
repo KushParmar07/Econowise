@@ -25,6 +25,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
   bool spent = false;
   String transactionDescriptionText = 'How much did you spend on ';
   DateTime? _selectedDate = DateTime.now();
+  String selectedCategory = "";
+  final TextEditingController categoryTitle = TextEditingController();
 
   // List to hold common icons (you can customize this list)
 
@@ -51,6 +53,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
           widget.currentTransaction!.amount.toString();
       _selectedDate = widget.currentTransaction!.date;
       spent = widget.currentTransaction!.spent;
+      selectedCategory = widget.currentTransaction!.category;
     }
   }
 
@@ -59,13 +62,14 @@ class _TransactionScreenState extends State<TransactionScreen> {
         _transactionAmountController.text != "") {
       if (widget.currentTransaction != null) {
         context.read<SaveData>().deleteTransaction(widget.currentTransaction ??
-            Transaction("Placeholder", 500, spent, DateTime.now()));
+            Transaction("Placeholder", 500, spent, DateTime.now(), ""));
       }
       context.read<SaveData>().addTransaction(Transaction(
           _transactionTitleController.text,
           double.parse(_transactionAmountController.text),
           spent,
-          _selectedDate));
+          _selectedDate,
+          selectedCategory));
 
       if (context.read<SaveData>().budgets.isNotEmpty) {
         for (var budget in context.read<SaveData>().budgets) {
@@ -99,6 +103,103 @@ class _TransactionScreenState extends State<TransactionScreen> {
   void back() {
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const MenuSelecter(index: 1)));
+  }
+
+  Future<void> modifyCategories() async {
+    List<String> categoriesWithoutNull =
+        List.from(context.read<SaveData>().categories);
+    categoriesWithoutNull.remove("");
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Categories'),
+          content: StatefulBuilder(builder: (context, setState) {
+            return Container(
+              width: double.maxFinite,
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: categoriesWithoutNull.length + 1,
+                  itemBuilder: (BuildContext context, index) {
+                    if (index == 0) {
+                      return ElevatedButton(
+                          onPressed: createCategory,
+                          child: Text("New Category"));
+                    } else {
+                      var category = categoriesWithoutNull[index - 1];
+                      return Card(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(category),
+                            IconButton(
+                                onPressed: () => {
+                                      setState(
+                                        () {
+                                          context
+                                              .read<SaveData>()
+                                              .deleteCategory(category);
+                                          categoriesWithoutNull
+                                              .remove(category);
+                                          if (selectedCategory == category) {
+                                            selectedCategory = "";
+                                            categoryTitle.text = "";
+                                          }
+                                        },
+                                      )
+                                    },
+                                icon: const Icon(Icons.delete))
+                          ],
+                        ),
+                      );
+                    }
+                  }),
+            );
+          }),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Done'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> createCategory() async {
+    TextEditingController categoryTitle = TextEditingController();
+    Navigator.of(context).pop();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Create A Category'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(controller: categoryTitle),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Create'),
+              onPressed: () {
+                setState(() {
+                  context.read<SaveData>().addCategory(categoryTitle.text);
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -288,6 +389,56 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               ],
                             ),
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Select Transaction Category (Blank For All)",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      SizedBox(
+                        height: 50,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(30.0),
+                          child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100]!,
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Expanded(
+                                  child: Row(
+                                children: [
+                                  Consumer<SaveData>(
+                                      builder: (context, saveData, _) {
+                                    return Expanded(
+                                      child: DropdownMenu(
+                                          initialSelection: selectedCategory,
+                                          controller: categoryTitle,
+                                          onSelected: (String? value) {
+                                            // This is called when the user selects an item.
+                                            setState(() {
+                                              selectedCategory = value!;
+                                            });
+                                          },
+                                          dropdownMenuEntries: saveData
+                                              .categories
+                                              .map<DropdownMenuEntry<String>>(
+                                                  (String value) {
+                                            return DropdownMenuEntry<String>(
+                                                value: value, label: value);
+                                          }).toList()),
+                                    );
+                                  }),
+                                  IconButton(
+                                      onPressed: modifyCategories,
+                                      icon: const Icon(Icons.more_vert))
+                                ],
+                              ))),
                         ),
                       ),
                       const SizedBox(height: 40),

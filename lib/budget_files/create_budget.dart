@@ -28,7 +28,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   DateTime? _startSelectedDate = DateTime.now();
   DateTime? _endSelectedDate = DateTime.now().add(const Duration(days: 31));
   Color _selectedColor = const Color.fromARGB(255, 255, 131, 90);
-  List<String> _selectedCategories = [];
+  List<String> selectedCategories = [];
 
   late List<Budget> currentBudgets = [];
 
@@ -110,6 +110,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   @override
   void initState() {
+    context.read<SaveData>().categories.remove("");
+    List<String> toDelete = [];
     super.initState();
     if (widget.currentBudget != null) {
       _budgetTitleController.text = widget.currentBudget!.goal;
@@ -119,7 +121,18 @@ class _BudgetScreenState extends State<BudgetScreen> {
       _endSelectedDate = widget.currentBudget!.endDate;
       _selectedIcon = widget.currentBudget!.icon;
       _selectedColor = widget.currentBudget!.color;
-      _selectedCategories = widget.currentBudget!.categories;
+      selectedCategories = widget.currentBudget!.categories;
+
+      if (selectedCategories.isNotEmpty) {
+        for (var category in selectedCategories) {
+          if (!context.read<SaveData>().categories.contains(category)) {
+            toDelete.add(category);
+          }
+        }
+      }
+    }
+    for (var categoryToDelete in toDelete) {
+      selectedCategories.remove(categoryToDelete);
     }
   }
 
@@ -129,7 +142,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       if (widget.currentBudget != null) {
         context.read<SaveData>().deleteBudget(widget.currentBudget ??
             Budget("Placeholder", 100, DateTime.now(), DateTime.now(),
-                Icons.abc, Colors.blue, _selectedCategories));
+                Icons.abc, Colors.blue, selectedCategories));
       }
       context.read<SaveData>().addBudget(Budget(
           _budgetTitleController.text,
@@ -138,7 +151,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
           _endSelectedDate,
           _selectedIcon,
           _selectedColor,
-          _selectedCategories));
+          selectedCategories));
 
       context.read<SaveData>().updateTransactions(context
           .read<SaveData>()
@@ -158,6 +171,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
   void back() {
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const MenuSelecter(index: 0)));
+
+    context.read<SaveData>().categories.insert(0, "");
   }
 
   void pickColor(BuildContext context) => showDialog(
@@ -206,10 +221,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                           context
                                               .read<SaveData>()
                                               .deleteCategory(category);
-                                          if (_selectedCategories
+                                          if (selectedCategories
                                               .contains(category)) {
-                                            _selectedCategories
-                                                .remove(category);
+                                            selectedCategories.remove(category);
                                           }
                                         },
                                       )
@@ -241,7 +255,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Create A Category'),
@@ -547,18 +560,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       ),
                       const SizedBox(height: 10),
                       const Text(
-                        'Select Categories To Add To Budget',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const Text(
-                        '(Leave Blank For All To Affect)',
+                        'Select Which Categories Affect Budget (Blank For All)',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
                       SizedBox(
                         height: 50,
                         child: InkWell(
-                          onTap: () => {},
                           borderRadius: BorderRadius.circular(30.0),
                           child: Container(
                               decoration: BoxDecoration(
@@ -579,18 +587,15 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                       separator: ', ',
                                       onChanged: (List<String> x) {
                                         setState(() {
-                                          _selectedCategories = x;
+                                          selectedCategories = x;
                                         });
-                                        print(context
-                                            .read<SaveData>()
-                                            .categories);
                                       },
                                       options: saveData.categories,
-                                      selectedValues: _selectedCategories,
-                                      whenEmpty: 'Select Categories',
+                                      selectedValues: selectedCategories,
+                                      whenEmpty: '',
                                     );
                                   })),
-                                  IconButton.filled(
+                                  IconButton(
                                       onPressed: modifyCategories,
                                       icon: const Icon(Icons.more_vert))
                                 ],

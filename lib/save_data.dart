@@ -53,7 +53,8 @@ class SaveData extends ChangeNotifier {
               transaction.date!.isBefore(endDate) &&
               transaction.date!.isAfter(startDate) ||
           DateUtils.isSameDay(startDate, transaction.date!) &&
-              transaction.date!.isBefore(endDate)) {
+              transaction.date!.isBefore(endDate) &&
+              transaction.spent) {
         if (budget.categories.contains(transaction.category) ||
             budget.categories.isEmpty ||
             transaction.category == "") {

@@ -4,6 +4,7 @@ import 'transaction.dart';
 import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:econowise/categories_controller.dart';
 
 class TransactionScreen extends StatefulWidget {
   const TransactionScreen({
@@ -27,6 +28,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
   DateTime? _selectedDate = DateTime.now();
   String selectedCategory = "";
   final TextEditingController categoryTitle = TextEditingController();
+  late List<String> categoriesWithoutNull;
 
   // List to hold common icons (you can customize this list)
 
@@ -55,6 +57,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
       spent = widget.currentTransaction!.spent;
       selectedCategory = widget.currentTransaction!.category;
     }
+
+    categoriesWithoutNull = List.from(context.read<SaveData>().categories);
+    categoriesWithoutNull.remove("");
   }
 
   void submit() {
@@ -69,7 +74,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
           double.parse(_transactionAmountController.text),
           spent,
           _selectedDate,
-          selectedCategory));
+          spent ? selectedCategory : ""));
 
       if (context.read<SaveData>().budgets.isNotEmpty) {
         for (var budget in context.read<SaveData>().budgets) {
@@ -103,103 +108,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
   void back() {
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const MenuSelecter(index: 1)));
-  }
-
-  Future<void> modifyCategories() async {
-    List<String> categoriesWithoutNull =
-        List.from(context.read<SaveData>().categories);
-    categoriesWithoutNull.remove("");
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Categories'),
-          content: StatefulBuilder(builder: (context, setState) {
-            return Container(
-              width: double.maxFinite,
-              child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: categoriesWithoutNull.length + 1,
-                  itemBuilder: (BuildContext context, index) {
-                    if (index == 0) {
-                      return ElevatedButton(
-                          onPressed: createCategory,
-                          child: Text("New Category"));
-                    } else {
-                      var category = categoriesWithoutNull[index - 1];
-                      return Card(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Text(category),
-                            IconButton(
-                                onPressed: () => {
-                                      setState(
-                                        () {
-                                          context
-                                              .read<SaveData>()
-                                              .deleteCategory(category);
-                                          categoriesWithoutNull
-                                              .remove(category);
-                                          if (selectedCategory == category) {
-                                            selectedCategory = "";
-                                            categoryTitle.text = "";
-                                          }
-                                        },
-                                      )
-                                    },
-                                icon: const Icon(Icons.delete))
-                          ],
-                        ),
-                      );
-                    }
-                  }),
-            );
-          }),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Done'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> createCategory() async {
-    TextEditingController categoryTitle = TextEditingController();
-    Navigator.of(context).pop();
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Create A Category'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                TextField(controller: categoryTitle),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Create'),
-              onPressed: () {
-                setState(() {
-                  context.read<SaveData>().addCategory(categoryTitle.text);
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -442,7 +350,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                           );
                                         }),
                                         IconButton(
-                                            onPressed: modifyCategories,
+                                            onPressed: () {
+                                              setState(() {
+                                                modifyCategories(context);
+                                              });
+                                            },
                                             icon: const Icon(Icons.more_vert))
                                       ],
                                     ))),

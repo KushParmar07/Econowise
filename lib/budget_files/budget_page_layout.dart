@@ -39,14 +39,14 @@ class _BudgetPageState extends State<BudgetPage> {
           DateTime.now(),
           DateTime.now(),
           Icons.accessibility_rounded,
-          Color.fromARGB(255, 179, 136, 235), []);
+          const Color.fromARGB(255, 179, 136, 235), []);
       selectedBudgetDetails = Budget(
           "Sample Budget",
           100,
           DateTime.now(),
           DateTime.now(),
           Icons.accessibility_rounded,
-          Color.fromARGB(255, 179, 136, 235), []);
+          const Color.fromARGB(255, 179, 136, 235), []);
       startDate = DateTime.now();
       endDate = DateTime.now();
     }
@@ -204,7 +204,7 @@ class _BudgetPageState extends State<BudgetPage> {
                                                     .withOpacity(0.2),
                                                 spreadRadius: 3,
                                                 blurRadius: 5,
-                                                offset: Offset(0, 10))
+                                                offset: const Offset(0, 10))
                                           ]
                                         : null,
                                   ),

@@ -1,12 +1,12 @@
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:multiselect/multiselect.dart';
 import 'budget.dart';
 import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:econowise/categories_controller.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({
@@ -80,31 +80,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
     }
   }
 
-  Future<void> _selectStartDate(BuildContext context) async {
+  Future<void> _selectDate(BuildContext context, DateTime? selectedDate,
+      Function(DateTime?) updateSelectedDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _startSelectedDate,
+      initialDate: selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != _startSelectedDate) {
-      setState(() {
-        _startSelectedDate = picked;
-      });
-    }
-  }
-
-  Future<void> _selectEndDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _endSelectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null && picked != _endSelectedDate) {
-      setState(() {
-        _endSelectedDate = picked;
-      });
+    if (picked != null && picked != selectedDate) {
+      updateSelectedDate(picked);
     }
   }
 
@@ -169,9 +154,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
   }
 
   void back() {
+    dispose();
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const MenuSelecter(index: 0)));
-
     context.read<SaveData>().categories.insert(0, "");
   }
 
@@ -188,98 +173,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   child: const Text('SELECT'))
             ],
           )));
-
-  Future<void> modifyCategories() async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Categories'),
-          content: StatefulBuilder(builder: (context, setState) {
-            return Container(
-              width: double.maxFinite,
-              child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: context.read<SaveData>().categories.length + 1,
-                  itemBuilder: (BuildContext context, index) {
-                    if (index == 0) {
-                      return ElevatedButton(
-                          onPressed: createCategory,
-                          child: Text("New Category"));
-                    } else {
-                      var category =
-                          context.read<SaveData>().categories[index - 1];
-                      return Card(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Text(category),
-                            IconButton(
-                                onPressed: () => {
-                                      setState(
-                                        () {
-                                          context
-                                              .read<SaveData>()
-                                              .deleteCategory(category);
-                                          if (selectedCategories
-                                              .contains(category)) {
-                                            selectedCategories.remove(category);
-                                          }
-                                        },
-                                      )
-                                    },
-                                icon: const Icon(Icons.delete))
-                          ],
-                        ),
-                      );
-                    }
-                  }),
-            );
-          }),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Done'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> createCategory() async {
-    TextEditingController categoryTitle = TextEditingController();
-    Navigator.of(context).pop();
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Create A Category'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                TextField(controller: categoryTitle),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Create'),
-              onPressed: () {
-                setState(() {
-                  context.read<SaveData>().addCategory(categoryTitle.text);
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   Widget buildColorPicker() => BlockPicker(
           pickerColor: _selectedColor,
@@ -309,6 +202,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
             Colors.black,
           ]);
 
+  void dispose() {
+    super.dispose();
+    _budgetTitleController.dispose();
+    _budgetAmountController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -337,77 +236,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
           SingleChildScrollView(
             child: Column(
               children: [
-                Container(
-                  height: 200, // Adjust height as needed
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(100),
-                        bottomRight: Radius.circular(100)),
-                    gradient: LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 255, 131, 90),
-                        Color.fromARGB(255, 229, 176, 158)
-                      ], // Orange shades
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(height: 20),
-                      Center(
-                        child: InkWell(
-                          onTap: _pickIcon,
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            decoration: const BoxDecoration(
-                              color: Color.fromARGB(255, 179, 136, 235),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              _selectedIcon,
-                              size: 32,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: Container(
-                          width: 300, // Width of the TextField
-                          height: 48, // Height of the TextField
-                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25.0),
-                          ),
-                          child: TextField(
-                            textAlign: TextAlign.center,
-                            controller: _budgetTitleController,
-                            decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(20))),
-                                hintText: 'Budget Title',
-                                suffixIcon: Icon(Icons.edit)),
-                            style: const TextStyle(fontSize: 20),
-                            onChanged: (value) {
-                              setState(() {
-                                budgetDescriptionText =
-                                    'How much would you like to spend on $value?';
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                topBackground(),
                 Padding(
                   padding: const EdgeInsets.all(25.0),
                   child: Column(
                     children: <Widget>[
-                      // Budget Amount Field (Left-aligned labels)
                       const Text(
                         'Set amount budget',
                         style: TextStyle(fontWeight: FontWeight.bold),
@@ -418,66 +251,21 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         style: const TextStyle(color: Colors.grey),
                       ),
                       const SizedBox(height: 10),
-                      SizedBox(
-                        height: 60,
-                        child: TextField(
-                          controller: _budgetAmountController,
-                          decoration: InputDecoration(
-                            hintText: '\$0.00',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey[100]!,
-                            suffixText: 'Budget amount',
-                            suffixStyle: const TextStyle(color: Colors.grey),
-                          ),
-                          style: const TextStyle(fontSize: 24),
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
+                      budgetAmountSelector(),
 
-                      // Optional Date Field (Date Picker)
                       const SizedBox(height: 20),
                       const Text(
                         'Set Starting Date',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
-                      SizedBox(
-                        height: 30,
-                        child: InkWell(
-                          onTap: () => _selectStartDate(context),
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100]!,
-                              borderRadius: BorderRadius.circular(30.0),
-                            ),
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _startSelectedDate == null
-                                        ? DateTime.now()
-                                            .toString()
-                                            .split(" ")[0]
-                                        : _startSelectedDate!
-                                            .toString()
-                                            .split(" ")[0],
-                                    style: const TextStyle(fontSize: 18),
-                                  ),
-                                ),
-                                const Icon(Icons.calendar_today,
-                                    color: Colors.grey),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      grayOutline(selectDateDisplay(_startSelectedDate), 30,
+                          onTap: () => _selectDate(context, _startSelectedDate,
+                                  (newDate) {
+                                setState(() {
+                                  _startSelectedDate = newDate;
+                                });
+                              })),
 
                       const SizedBox(height: 8),
                       const Text(
@@ -485,39 +273,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
-                      SizedBox(
-                        height: 30,
-                        child: InkWell(
-                          onTap: () => _selectEndDate(context),
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100]!,
-                              borderRadius: BorderRadius.circular(30.0),
-                            ),
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _endSelectedDate == null
-                                        ? DateTime.now()
-                                            .toString()
-                                            .split(" ")[0]
-                                        : _endSelectedDate!
-                                            .toString()
-                                            .split(" ")[0],
-                                    style: const TextStyle(fontSize: 18),
-                                  ),
-                                ),
-                                const Icon(Icons.calendar_today,
-                                    color: Colors.grey),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      grayOutline(selectDateDisplay(_startSelectedDate), 30,
+                          onTap: () =>
+                              _selectDate(context, _endSelectedDate, (newDate) {
+                                setState(() {
+                                  _endSelectedDate = newDate;
+                                });
+                              })),
 
                       const SizedBox(height: 8),
                       const Text(
@@ -525,131 +287,18 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
-                      SizedBox(
-                        height: 60,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100]!,
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  const Expanded(
-                                      child: Text(
-                                    "Color:",
-                                    style: TextStyle(fontSize: 20),
-                                  )),
-                                  FilledButton(
-                                    onPressed: () => {pickColor(context)},
-                                    style: FilledButton.styleFrom(
-                                        backgroundColor: _selectedColor),
-                                    child: const SizedBox(
-                                      height: 40,
-                                      width: 70,
-                                    ),
-                                  )
-                                ],
-                              )),
-                        ),
-                      ),
+                      grayOutline(colourSelectorDisplay(context), 60),
                       const SizedBox(height: 10),
                       const Text(
                         'Select Which Categories Affect Budget (Blank For All)',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
-                      SizedBox(
-                        height: 50,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100]!,
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Expanded(
-                                  child: Row(
-                                children: [
-                                  Expanded(child: Consumer<SaveData>(
-                                      builder: (context, saveData, _) {
-                                    return DropDownMultiSelect(
-                                      selectedValuesStyle: const TextStyle(
-                                          color:
-                                              Color.fromARGB(0, 255, 255, 255)),
-                                      separator: ', ',
-                                      onChanged: (List<String> x) {
-                                        setState(() {
-                                          selectedCategories = x;
-                                        });
-                                      },
-                                      options: saveData.categories,
-                                      selectedValues: selectedCategories,
-                                      whenEmpty: '',
-                                    );
-                                  })),
-                                  IconButton(
-                                      onPressed: modifyCategories,
-                                      icon: const Icon(Icons.more_vert))
-                                ],
-                              ))),
-                        ),
-                      ),
+                      grayOutline(categoriesDisplay(), 50),
 
                       // Create Budget Button
                       const SizedBox(height: 40),
-                      Center(
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 60,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              submit();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                            ),
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Color.fromARGB(255, 255, 131, 90),
-                                    Color.fromARGB(255, 128, 147, 241)
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              child: Container(
-                                constraints:
-                                    const BoxConstraints(minHeight: 60),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  widget.currentBudget == null
-                                      ? 'Create Budget'
-                                      : 'Save Budget',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      submitBudgetButton(),
                     ],
                   ),
                 ),
@@ -658,20 +307,227 @@ class _BudgetScreenState extends State<BudgetScreen> {
           ),
         ]));
   }
-}
 
-class BackgroundClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    var path = Path();
-    path.lineTo(0, size.height - 60);
-    path.quadraticBezierTo(
-        size.width / 2, size.height, size.width, size.height - 60);
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
+  Center submitBudgetButton() {
+    return Center(
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: ElevatedButton(
+          onPressed: () {
+            submit();
+          },
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30.0),
+            ),
+          ),
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Color.fromARGB(255, 255, 131, 90),
+                  Color.fromARGB(255, 128, 147, 241)
+                ],
+              ),
+              borderRadius: BorderRadius.circular(30.0),
+            ),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 60),
+              alignment: Alignment.center,
+              child: Text(
+                widget.currentBudget == null ? 'Create Budget' : 'Save Budget',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  Expanded categoriesDisplay() {
+    return Expanded(
+        child: Row(
+      children: [
+        Expanded(child: Consumer<SaveData>(builder: (context, saveData, _) {
+          return DropDownMultiSelect(
+            selectedValuesStyle:
+                const TextStyle(color: Color.fromARGB(0, 255, 255, 255)),
+            separator: ', ',
+            onChanged: (List<String> x) {
+              setState(() {
+                selectedCategories = x;
+              });
+            },
+            options: saveData.categories,
+            selectedValues: selectedCategories,
+            whenEmpty: '',
+          );
+        })),
+        IconButton(
+            onPressed: () {
+              modifyCategories(context);
+            },
+            icon: const Icon(Icons.more_vert))
+      ],
+    ));
+  }
+
+  Row colourSelectorDisplay(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        const Expanded(
+            child: Text(
+          "Color:",
+          style: TextStyle(fontSize: 20),
+        )),
+        FilledButton(
+          onPressed: () => {pickColor(context)},
+          style: FilledButton.styleFrom(backgroundColor: _selectedColor),
+          child: const SizedBox(
+            height: 40,
+            width: 70,
+          ),
+        )
+      ],
+    );
+  }
+
+  SizedBox grayOutline(Widget inside, double height,
+      {Future<void> Function()? onTap}) {
+    return SizedBox(
+      height: height,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(30.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100]!,
+            borderRadius: BorderRadius.circular(30.0),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: inside,
+        ),
+      ),
+    );
+  }
+
+  Row selectDateDisplay(DateTime? dateObject) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            dateObject == null
+                ? DateTime.now().toString().split(" ")[0]
+                : dateObject.toString().split(" ")[0],
+            style: const TextStyle(fontSize: 18),
+          ),
+        ),
+        const Icon(Icons.calendar_today, color: Colors.grey),
+      ],
+    );
+  }
+
+  SizedBox budgetAmountSelector() {
+    return SizedBox(
+      height: 60,
+      child: TextField(
+        controller: _budgetAmountController,
+        decoration: InputDecoration(
+          hintText: '\$0.00',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30.0),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.grey[100]!,
+          suffixText: 'Budget amount',
+          suffixStyle: const TextStyle(color: Colors.grey),
+        ),
+        style: const TextStyle(fontSize: 24),
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+
+  Container topBackground() {
+    return Container(
+      height: 200, // Adjust height as needed
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(100),
+            bottomRight: Radius.circular(100)),
+        gradient: LinearGradient(
+          colors: [
+            Color.fromARGB(255, 255, 131, 90),
+            Color.fromARGB(255, 229, 176, 158)
+          ], // Orange shades
+        ),
+      ),
+      child: topSelector(),
+    );
+  }
+
+  Column topSelector() {
+    return Column(
+      children: [
+        Container(height: 20),
+        Center(
+          child: InkWell(
+            onTap: _pickIcon,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: const BoxDecoration(
+                color: Color.fromARGB(255, 179, 136, 235),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _selectedIcon,
+                size: 32,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: Container(
+            width: 300, // Width of the TextField
+            height: 48, // Height of the TextField
+            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(25.0),
+            ),
+            child: TextField(
+              textAlign: TextAlign.center,
+              controller: _budgetTitleController,
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                  hintText: 'Budget Title',
+                  suffixIcon: Icon(Icons.edit)),
+              style: const TextStyle(fontSize: 20),
+              onChanged: (value) {
+                setState(() {
+                  budgetDescriptionText =
+                      'How much would you like to spend on $value?';
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

@@ -17,7 +17,7 @@ Future<void> modifyCategories(BuildContext context,
                 .where((category) => category != "")
                 .toList();
 
-            return Container(
+            return SizedBox(
               width: double.maxFinite,
               child: ListView.builder(
                 shrinkWrap: true,
@@ -26,7 +26,7 @@ Future<void> modifyCategories(BuildContext context,
                   if (index == 0) {
                     return ElevatedButton(
                       onPressed: () => createCategory(context),
-                      child: Text("New Category"),
+                      child: const Text("New Category"),
                     );
                   } else {
                     var category = filteredCategories[index - 1];

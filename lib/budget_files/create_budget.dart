@@ -202,6 +202,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             Colors.black,
           ]);
 
+  @override
   void dispose() {
     super.dispose();
     _budgetTitleController.dispose();

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'save_data.dart';
 
-Future<void> modifyCategories(BuildContext context) async {
+Future<void> modifyCategories(BuildContext context,
+    {List<String>? selectedCategories,
+    TextEditingController? selectedCategoryController}) async {
   return showDialog<void>(
     context: context,
     builder: (BuildContext context) {
@@ -15,7 +17,7 @@ Future<void> modifyCategories(BuildContext context) async {
                 .where((category) => category != "")
                 .toList();
 
-            return SizedBox(
+            return Container(
               width: double.maxFinite,
               child: ListView.builder(
                 shrinkWrap: true,
@@ -24,7 +26,7 @@ Future<void> modifyCategories(BuildContext context) async {
                   if (index == 0) {
                     return ElevatedButton(
                       onPressed: () => createCategory(context),
-                      child: const Text("New Category"),
+                      child: Text("New Category"),
                     );
                   } else {
                     var category = filteredCategories[index - 1];
@@ -35,8 +37,15 @@ Future<void> modifyCategories(BuildContext context) async {
                           Text(category),
                           IconButton(
                             onPressed: () {
-                              saveData.deleteCategory(
-                                  category); // Directly update SaveData
+                              saveData.deleteCategory(category);
+                              if (selectedCategories != null &&
+                                  selectedCategories.contains(category)) {
+                                selectedCategories.remove(category);
+                              }
+                              if (selectedCategoryController != null &&
+                                  selectedCategoryController.text == category) {
+                                selectedCategoryController.text = "";
+                              }
                             },
                             icon: const Icon(Icons.delete),
                           ),

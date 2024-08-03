@@ -150,164 +150,9 @@ class _BudgetPageState extends State<BudgetPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 15),
-                SizedBox(
-                  height: 200,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal, // Scroll horizontally
-                    itemCount: budgets.length + 1, // Include the "Add" button
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                onTap: createBudget,
-                                borderRadius: BorderRadius.circular(10),
-                                child: Ink(
-                                  width: 50,
-                                  height: 100,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(Icons.add, size: 30),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        final budget = budgets[index - 1];
-                        final isSelected = budget == selectedBudget;
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                onTap: () => changeActive(budget),
-                                borderRadius: BorderRadius.circular(15),
-                                child: Ink(
-                                  width: isSelected ? 130 : 120,
-                                  height: isSelected ? 160 : 140,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? budget.color.withOpacity(0.9)
-                                        : budget.color.withOpacity(0.3),
-                                    borderRadius: BorderRadius.circular(15),
-                                    boxShadow: isSelected
-                                        ? [
-                                            BoxShadow(
-                                                color: budget.color
-                                                    .withOpacity(0.2),
-                                                spreadRadius: 3,
-                                                blurRadius: 5,
-                                                offset: const Offset(0, 10))
-                                          ]
-                                        : null,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const SizedBox(
-                                        height: 25,
-                                      ),
-                                      Text(
-                                        budget.goal,
-                                        style: TextStyle(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: Colors.white,
-                                            fontSize: 16),
-                                      ),
-                                      Text(
-                                          '\$${budget.totalUsed.toStringAsFixed(2)}',
-                                          style: const TextStyle(
-                                              color: Colors.white)),
-                                      Text(
-                                        'of \$${budget.budgetAmount.toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                            fontSize: 12, color: Colors.white),
-                                      ),
-                                      IconButton(
-                                          onPressed: () {
-                                            showBudgetOptions(budget);
-                                          },
-                                          icon: const Icon(Icons.more_horiz))
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: const Color.fromARGB(255, 228, 222, 222)
-                            .withOpacity(0.3),
-                      ),
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40)),
-                      color: const Color.fromARGB(255, 228, 222, 222)
-                          .withOpacity(0.3),
-                    ),
-                    width: size.width,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 15),
-                          Text(
-                            selectedBudget.goal,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 10),
-                          Icon(
-                            selectedBudgetDetails.icon,
-                            size: 60,
-                            color: selectedBudgetDetails.color,
-                          ),
-                          const SizedBox(height: 35),
-                          CircularPercentIndicator(
-                            radius: 150,
-                            lineWidth: 35,
-                            percent: percentageUsed,
-                            progressColor: selectedBudgetDetails.color,
-                            backgroundColor:
-                                selectedBudgetDetails.color.withOpacity(0.2),
-                            center: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text('Amount Used'),
-                                Text(
-                                  '\$${selectedBudgetDetails.totalUsed.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'of \$${selectedBudgetDetails.budgetAmount.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                budgetListDisplay(),
+                displayGrayBackground(
+                    size, budgetDetailsDisplay(percentageUsed)),
               ],
             )
           : Center(
@@ -315,6 +160,166 @@ class _BudgetPageState extends State<BudgetPage> {
                   onPressed: createBudget,
                   child: const Text("Please Create A Budget")),
             ),
+    );
+  }
+
+  Expanded displayGrayBackground(Size size, Widget inside) {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: const Color.fromARGB(255, 228, 222, 222).withOpacity(0.3),
+          ),
+          borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+          color: const Color.fromARGB(255, 228, 222, 222).withOpacity(0.3),
+        ),
+        width: size.width,
+        child: inside,
+      ),
+    );
+  }
+
+  SingleChildScrollView budgetDetailsDisplay(double percentageUsed) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 15),
+          Text(
+            selectedBudget.goal,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          Icon(
+            selectedBudgetDetails.icon,
+            size: 60,
+            color: selectedBudgetDetails.color,
+          ),
+          const SizedBox(height: 35),
+          CircularPercentIndicator(
+            radius: 150,
+            lineWidth: 35,
+            percent: percentageUsed,
+            progressColor: selectedBudgetDetails.color,
+            backgroundColor: selectedBudgetDetails.color.withOpacity(0.2),
+            center: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Amount Used'),
+                Text(
+                  '\$${selectedBudgetDetails.totalUsed.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'of \$${selectedBudgetDetails.budgetAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  SizedBox budgetListDisplay() {
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal, // Scroll horizontally
+        itemCount: budgets.length + 1, // Include the "Add" button
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  InkWell(
+                    onTap: createBudget,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Ink(
+                      width: 50,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.add, size: 30),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            final budget = budgets[index - 1];
+            final isSelected = budget == selectedBudget;
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  InkWell(
+                    onTap: () => changeActive(budget),
+                    borderRadius: BorderRadius.circular(15),
+                    child: Ink(
+                      width: isSelected ? 130 : 120,
+                      height: isSelected ? 160 : 140,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? budget.color.withOpacity(0.9)
+                            : budget.color.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                    color: budget.color.withOpacity(0.2),
+                                    spreadRadius: 3,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 10))
+                              ]
+                            : null,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            height: 25,
+                          ),
+                          Text(
+                            budget.goal,
+                            style: TextStyle(
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: Colors.white,
+                                fontSize: 16),
+                          ),
+                          Text('\$${budget.totalUsed.toStringAsFixed(2)}',
+                              style: const TextStyle(color: Colors.white)),
+                          Text(
+                            'of \$${budget.budgetAmount.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.white),
+                          ),
+                          IconButton(
+                              onPressed: () {
+                                showBudgetOptions(budget);
+                              },
+                              icon: const Icon(Icons.more_horiz))
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 }

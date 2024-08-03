@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'transaction_files/transactions_page.dart';
 import 'budget_files/budget_page_layout.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class MenuSelecter extends StatefulWidget {
   const MenuSelecter({super.key, required this.index});
@@ -33,6 +34,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
         currentIndex: _currentIndex,
         onTap: (int newIndex) {
           setState(() {
+            Fluttertoast.cancel();
             _currentIndex = newIndex;
           });
         },

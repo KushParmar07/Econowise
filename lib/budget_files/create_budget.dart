@@ -273,7 +273,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
-                      grayOutline(selectDateDisplay(_startSelectedDate), 30,
+                      grayOutline(selectDateDisplay(_endSelectedDate), 30,
                           onTap: () =>
                               _selectDate(context, _endSelectedDate, (newDate) {
                                 setState(() {
@@ -374,7 +374,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         })),
         IconButton(
             onPressed: () {
-              modifyCategories(context);
+              modifyCategories(context, selectedCategories: selectedCategories);
             },
             icon: const Icon(Icons.more_vert))
       ],

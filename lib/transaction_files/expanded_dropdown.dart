@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:econowise/budget_files/budget.dart';
 
 class ExpandedDropdownMenu extends StatelessWidget {
-  final String initialSelection;
+  final Budget initialSelection;
   final TextEditingController controller;
-  final Function(String?) onSelected;
-  final List<DropdownMenuEntry<String>> dropdownMenuEntries;
+  final Function(Budget?) onSelected;
+  final List<DropdownMenuEntry<Budget>> dropdownMenuEntries;
 
   const ExpandedDropdownMenu({
     required this.initialSelection,

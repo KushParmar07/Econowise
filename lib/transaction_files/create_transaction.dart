@@ -1,3 +1,4 @@
+import 'package:econowise/budget_files/budget.dart';
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'transaction.dart';
@@ -27,7 +28,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
   bool spent = false;
   String transactionDescriptionText = 'How much did you spend on ';
   DateTime? _selectedDate = DateTime.now();
-  String selectedCategory = "";
+  late Budget selectedBudget;
   final TextEditingController categoryTitle = TextEditingController();
   late List<String> categoriesWithoutNull;
 
@@ -54,7 +55,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
           widget.currentTransaction!.amount.toString();
       _selectedDate = widget.currentTransaction!.date;
       spent = widget.currentTransaction!.spent;
-      selectedCategory = widget.currentTransaction!.category;
+      selectedBudget = widget.currentTransaction!.budget;
     }
 
     categoriesWithoutNull = List.from(context.read<SaveData>().categories);
@@ -66,14 +67,28 @@ class _TransactionScreenState extends State<TransactionScreen> {
         _transactionAmountController.text != "") {
       if (widget.currentTransaction != null) {
         context.read<SaveData>().deleteTransaction(widget.currentTransaction ??
-            Transaction("Placeholder", 500, spent, DateTime.now(), ""));
+            Transaction(
+                "Placeholder",
+                500,
+                spent,
+                DateTime.now(),
+                Budget(
+                    "sample",
+                    0,
+                    DateTime.now(),
+                    DateTime.now(),
+                    Icons.attach_money,
+                    Color.fromARGB(255, 128, 147, 241), [])));
       }
       context.read<SaveData>().addTransaction(Transaction(
           _transactionTitleController.text,
           double.parse(_transactionAmountController.text),
           spent,
           _selectedDate,
-          spent ? selectedCategory : ""));
+          spent
+              ? selectedBudget
+              : Budget("sample", 0, DateTime.now(), DateTime.now(),
+                  Icons.attach_money, Color.fromARGB(255, 128, 147, 241), [])));
 
       if (context.read<SaveData>().budgets.isNotEmpty) {
         for (var budget in context.read<SaveData>().budgets) {
@@ -111,6 +126,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (context.read<SaveData>().budgets.isNotEmpty) {
+      selectedBudget = context.read<SaveData>().budgets[0];
+    } else {
+      selectedBudget = Budget("Sample Budget", 0, DateTime.now(),
+          DateTime.now(), Icons.account_balance_outlined, Colors.green, []);
+    }
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: const Color(0xFFF59E0B),
@@ -230,38 +252,25 @@ class _TransactionScreenState extends State<TransactionScreen> {
     );
   }
 
-  Row categorySelectorDisplay(BuildContext context) {
-    return Row(
-      children: [
-        Flexible(
-          child: Consumer<SaveData>(
-            builder: (context, saveData, _) {
-              return ExpandedDropdownMenu(
-                initialSelection: selectedCategory,
-                controller: categoryTitle,
-                onSelected: (String? value) {
-                  setState(() {
-                    selectedCategory = value!;
-                  });
-                },
-                dropdownMenuEntries: saveData.categories
-                    .map<DropdownMenuEntry<String>>((String value) {
-                  return DropdownMenuEntry<String>(value: value, label: value);
-                }).toList(),
-              );
+  Flexible categorySelectorDisplay(BuildContext context) {
+    return Flexible(
+      child: Consumer<SaveData>(
+        builder: (context, saveData, _) {
+          return ExpandedDropdownMenu(
+            initialSelection: selectedBudget,
+            controller: categoryTitle,
+            onSelected: (Budget? value) {
+              setState(() {
+                selectedBudget = value!;
+              });
             },
-          ),
-        ),
-        IconButton(
-          onPressed: () {
-            setState(() {
-              modifyCategories(context,
-                  selectedCategoryController: categoryTitle);
-            });
-          },
-          icon: const Icon(Icons.more_vert),
-        ),
-      ],
+            dropdownMenuEntries:
+                saveData.budgets.map<DropdownMenuEntry<Budget>>((Budget value) {
+              return DropdownMenuEntry<Budget>(value: value, label: value.goal);
+            }).toList(),
+          );
+        },
+      ),
     );
   }
 

@@ -155,11 +155,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     size, budgetDetailsDisplay(percentageUsed)),
               ],
             )
-          : Center(
-              child: ElevatedButton(
-                  onPressed: createBudget,
-                  child: const Text("Please Create A Budget")),
-            ),
+          : createBudgetButton(),
     );
   }
 
@@ -319,6 +315,54 @@ class _BudgetPageState extends State<BudgetPage> {
             );
           }
         },
+      ),
+    );
+  }
+
+  Center createBudgetButton() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: SizedBox(
+          width: 300,
+          height: 60,
+          child: ElevatedButton(
+            onPressed: () {
+              createBudget();
+            },
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+            ),
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Color.fromARGB(255, 255, 131, 90),
+                    Color.fromARGB(255, 128, 147, 241)
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 60),
+                alignment: Alignment.center,
+                child: const Text(
+                  "Create Budget",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

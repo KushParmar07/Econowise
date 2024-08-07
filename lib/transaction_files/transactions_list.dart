@@ -3,6 +3,7 @@ import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'transaction.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class TransactionsList extends StatefulWidget {
   const TransactionsList(this.transactionItems, {super.key});
@@ -75,62 +76,41 @@ class _TransactionsListState extends State<TransactionsList> {
         itemCount: widget.transactionItems.length,
         itemBuilder: (BuildContext context, index) {
           var transaction = widget.transactionItems[index];
-          // if (!context         Handle for if budget that it is currently using gets deleted
-          //     .read<SaveData>()
-          //     .categories
-          //     .contains(transaction.category)) {
-          //   transaction.category = "";
-          // }
-          return Card(
-            color: transaction.spent ? Colors.red : Colors.green,
-            child: IntrinsicHeight(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(25, 10, 25, 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            transaction.title,
-                            style: const TextStyle(fontSize: 15),
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            transaction.date.toString().split(" ")[0],
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.black38),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 10, 8, 10),
-                    child: Row(
-                      children: [
-                        Text(
-                          '${transaction.amount.toString()}\$',
-                          style: const TextStyle(fontSize: 15),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.more_vert),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          onPressed: () {
-                            showTransactionOptions(transaction);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+          DateTime date = transaction.date ?? DateTime.now();
+          return ListTile(
+            tileColor: const Color.fromARGB(255, 228, 222, 222),
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: transaction.budget.color,
+                shape: BoxShape.circle,
               ),
+              child: Icon(transaction.budget.icon, color: Colors.white),
+            ),
+            title: Text(
+              transaction.title,
+              style: const TextStyle(fontSize: 20),
+            ),
+            subtitle: Text(DateFormat("MMM, d, yyyy").format(date)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "${transaction.spent ? "-" : "+"}\$${transaction.amount.toString()}",
+                  style: TextStyle(
+                      color: transaction.spent ? Colors.red : Colors.green,
+                      fontSize: 20),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    showTransactionOptions(transaction);
+                  },
+                ),
+              ],
             ),
           );
         });

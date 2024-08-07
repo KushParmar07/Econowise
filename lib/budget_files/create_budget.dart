@@ -1,7 +1,6 @@
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:multiselect/multiselect.dart';
 import 'budget.dart';
 import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
@@ -94,7 +93,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   void initState() {
     context.read<SaveData>().categories.remove("");
-    List<String> toDelete = [];
     super.initState();
     if (widget.currentBudget != null) {
       _budgetTitleController.text = widget.currentBudget!.goal;

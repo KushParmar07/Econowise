@@ -8,6 +8,30 @@ class SaveData extends ChangeNotifier {
   final List<String> _categories = [""];
 
   List<Transaction> get transactions => _transactions;
+  List<Transaction> get dateSortedTransactionsDescending {
+    List<Transaction> sortedTransactions = List.from(_transactions);
+    sortedTransactions.sort((a, b) => b.date!.compareTo(a.date!));
+    return sortedTransactions;
+  }
+
+  List<Transaction> get dateSortedTransactionsAscending {
+    List<Transaction> sortedTransactions = List.from(_transactions);
+    sortedTransactions.sort((a, b) => a.date!.compareTo(b.date!));
+    return sortedTransactions;
+  }
+
+  List<Transaction> get amountSortedTransactionsAscending {
+    List<Transaction> sortedTransactions = List.from(_transactions);
+    sortedTransactions.sort((a, b) => a.amount.compareTo(b.amount));
+    return sortedTransactions;
+  }
+
+  List<Transaction> get amountSortedTransactionsDescending {
+    List<Transaction> sortedTransactions = List.from(_transactions);
+    sortedTransactions.sort((a, b) => b.amount.compareTo(a.amount));
+    return sortedTransactions;
+  }
+
   List<Budget> get budgets => _budgets;
   List<String> get categories => _categories;
 

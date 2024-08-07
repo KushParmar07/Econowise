@@ -60,7 +60,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
       selectedBudget = context.read<SaveData>().budgets[0];
     } else {
       selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-          Icons.attach_money, Color.fromARGB(255, 128, 147, 241));
+          Icons.money_off, Color.fromARGB(255, 128, 147, 241));
     }
   }
 
@@ -76,6 +76,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 DateTime.now(),
                 Budget("sample", 0, DateTime.now(), DateTime.now(),
                     Icons.attach_money, Color.fromARGB(255, 128, 147, 241))));
+      }
+      if (!spent) {
+        selectedBudget.icon = Icons.attach_money;
       }
       context.read<SaveData>().addTransaction(Transaction(
           _transactionTitleController.text,

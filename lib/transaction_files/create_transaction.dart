@@ -5,7 +5,6 @@ import 'transaction.dart';
 import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:econowise/categories_controller.dart';
 import 'expanded_dropdown.dart';
 
 class TransactionScreen extends StatefulWidget {
@@ -30,7 +29,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
   DateTime? _selectedDate = DateTime.now();
   late Budget selectedBudget;
   final TextEditingController categoryTitle = TextEditingController();
-  late List<String> categoriesWithoutNull;
 
   Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -58,8 +56,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
       selectedBudget = widget.currentTransaction!.budget;
     }
 
-    categoriesWithoutNull = List.from(context.read<SaveData>().categories);
-    categoriesWithoutNull.remove("");
+    if (context.read<SaveData>().budgets.isNotEmpty) {
+      selectedBudget = context.read<SaveData>().budgets[0];
+    } else {
+      selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+          Icons.attach_money, Color.fromARGB(255, 128, 147, 241));
+    }
   }
 
   void submit() {
@@ -72,23 +74,15 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 500,
                 spent,
                 DateTime.now(),
-                Budget(
-                    "sample",
-                    0,
-                    DateTime.now(),
-                    DateTime.now(),
-                    Icons.attach_money,
-                    Color.fromARGB(255, 128, 147, 241), [])));
+                Budget("sample", 0, DateTime.now(), DateTime.now(),
+                    Icons.attach_money, Color.fromARGB(255, 128, 147, 241))));
       }
       context.read<SaveData>().addTransaction(Transaction(
           _transactionTitleController.text,
           double.parse(_transactionAmountController.text),
           spent,
           _selectedDate,
-          spent
-              ? selectedBudget
-              : Budget("sample", 0, DateTime.now(), DateTime.now(),
-                  Icons.attach_money, Color.fromARGB(255, 128, 147, 241), [])));
+          selectedBudget));
 
       if (context.read<SaveData>().budgets.isNotEmpty) {
         for (var budget in context.read<SaveData>().budgets) {
@@ -126,13 +120,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (context.read<SaveData>().budgets.isNotEmpty) {
-      selectedBudget = context.read<SaveData>().budgets[0];
-    } else {
-      selectedBudget = Budget("Sample Budget", 0, DateTime.now(),
-          DateTime.now(), Icons.account_balance_outlined, Colors.green, []);
-    }
-
     return Scaffold(
         appBar: AppBar(
           backgroundColor: const Color(0xFFF59E0B),
@@ -184,7 +171,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       const SizedBox(height: 20),
                       spent
                           ? const Text(
-                              "Select Transaction Category (Blank For All)",
+                              "Select Budget Affected",
                               style: TextStyle(fontWeight: FontWeight.bold),
                             )
                           : const SizedBox(),
@@ -266,7 +253,10 @@ class _TransactionScreenState extends State<TransactionScreen> {
             },
             dropdownMenuEntries:
                 saveData.budgets.map<DropdownMenuEntry<Budget>>((Budget value) {
-              return DropdownMenuEntry<Budget>(value: value, label: value.goal);
+              return DropdownMenuEntry<Budget>(
+                  value: value,
+                  label: value.goal,
+                  leadingIcon: Icon(value.icon, color: value.color));
             }).toList(),
           );
         },

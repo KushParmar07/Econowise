@@ -8,8 +8,6 @@ class Budget {
   IconData icon;
   double totalUsed = 0;
   Color color = Colors.blue;
-  List<String> categories;
-
   Budget(this.goal, this.budgetAmount, this.startDate, this.endDate, this.icon,
-      this.color, this.categories);
+      this.color);
 }

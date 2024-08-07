@@ -23,8 +23,12 @@ class ExpandedDropdownMenu extends StatelessWidget {
           initialSelection: initialSelection,
           controller: controller,
           onSelected: onSelected,
+          leadingIcon: Icon(
+            initialSelection.icon,
+            color: initialSelection.color,
+          ),
           dropdownMenuEntries: dropdownMenuEntries,
-          width: constraints.maxWidth, // Force full width
+          width: constraints.maxWidth,
         );
       },
     );

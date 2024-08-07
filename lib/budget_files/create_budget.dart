@@ -6,7 +6,6 @@ import 'budget.dart';
 import '../navigation_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:econowise/categories_controller.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({
@@ -28,7 +27,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
   DateTime? _startSelectedDate = DateTime.now();
   DateTime? _endSelectedDate = DateTime.now().add(const Duration(days: 31));
   Color _selectedColor = const Color.fromARGB(255, 255, 131, 90);
-  List<String> selectedCategories = [];
 
   late List<Budget> currentBudgets = [];
 
@@ -106,18 +104,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
       _endSelectedDate = widget.currentBudget!.endDate;
       _selectedIcon = widget.currentBudget!.icon;
       _selectedColor = widget.currentBudget!.color;
-      selectedCategories = widget.currentBudget!.categories;
-
-      if (selectedCategories.isNotEmpty) {
-        for (var category in selectedCategories) {
-          if (!context.read<SaveData>().categories.contains(category)) {
-            toDelete.add(category);
-          }
-        }
-      }
-    }
-    for (var categoryToDelete in toDelete) {
-      selectedCategories.remove(categoryToDelete);
     }
   }
 
@@ -127,7 +113,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       if (widget.currentBudget != null) {
         context.read<SaveData>().deleteBudget(widget.currentBudget ??
             Budget("Placeholder", 100, DateTime.now(), DateTime.now(),
-                Icons.abc, Colors.blue, selectedCategories));
+                Icons.abc, Colors.blue));
       }
       context.read<SaveData>().addBudget(Budget(
           _budgetTitleController.text,
@@ -135,8 +121,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
           _startSelectedDate,
           _endSelectedDate,
           _selectedIcon,
-          _selectedColor,
-          selectedCategories));
+          _selectedColor));
 
       context.read<SaveData>().updateTransactions(context
           .read<SaveData>()
@@ -290,13 +275,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       const SizedBox(height: 10),
                       grayOutline(colourSelectorDisplay(context), 60),
                       const SizedBox(height: 10),
-                      const Text(
-                        'Select Which Categories Affect Budget (Blank For All)',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      grayOutline(categoriesDisplay(), 50),
-
                       // Create Budget Button
                       const SizedBox(height: 40),
                       submitBudgetButton(),
@@ -352,34 +330,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
         ),
       ),
     );
-  }
-
-  Expanded categoriesDisplay() {
-    return Expanded(
-        child: Row(
-      children: [
-        Expanded(child: Consumer<SaveData>(builder: (context, saveData, _) {
-          return DropDownMultiSelect(
-            selectedValuesStyle:
-                const TextStyle(color: Color.fromARGB(0, 255, 255, 255)),
-            separator: ', ',
-            onChanged: (List<String> x) {
-              setState(() {
-                selectedCategories = x;
-              });
-            },
-            options: saveData.categories,
-            selectedValues: selectedCategories,
-            whenEmpty: '',
-          );
-        })),
-        IconButton(
-            onPressed: () {
-              modifyCategories(context, selectedCategories: selectedCategories);
-            },
-            icon: const Icon(Icons.more_vert))
-      ],
-    ));
   }
 
   Row colourSelectorDisplay(BuildContext context) {
@@ -488,8 +438,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
             child: Container(
               width: 60,
               height: 60,
-              decoration: const BoxDecoration(
-                color: Color.fromARGB(255, 179, 136, 235),
+              decoration: BoxDecoration(
+                color: _selectedColor,
                 shape: BoxShape.circle,
               ),
               child: Icon(

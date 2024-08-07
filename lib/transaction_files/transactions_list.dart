@@ -75,12 +75,12 @@ class _TransactionsListState extends State<TransactionsList> {
         itemCount: widget.transactionItems.length,
         itemBuilder: (BuildContext context, index) {
           var transaction = widget.transactionItems[index];
-          if (!context
-              .read<SaveData>()
-              .categories
-              .contains(transaction.category)) {
-            transaction.category = "";
-          }
+          // if (!context         Handle for if budget that it is currently using gets deleted
+          //     .read<SaveData>()
+          //     .categories
+          //     .contains(transaction.category)) {
+          //   transaction.category = "";
+          // }
           return Card(
             color: transaction.spent ? Colors.red : Colors.green,
             child: IntrinsicHeight(
@@ -107,13 +107,6 @@ class _TransactionsListState extends State<TransactionsList> {
                                 fontSize: 12, color: Colors.black38),
                           ),
                         ),
-                        transaction.category != ""
-                            ? Flexible(
-                                child: Text(
-                                    "Category : ${transaction.category}",
-                                    style: const TextStyle(
-                                        fontSize: 12, color: Colors.black38)))
-                            : Container()
                       ],
                     ),
                   ),

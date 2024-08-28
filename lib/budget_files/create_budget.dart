@@ -137,7 +137,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
   }
 
   void back() {
-    dispose();
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const MenuSelecter(index: 0)));
     context.read<SaveData>().categories.insert(0, "");
@@ -184,13 +183,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
             Colors.blueGrey,
             Colors.black,
           ]);
-
-  @override
-  void dispose() {
-    super.dispose();
-    _budgetTitleController.dispose();
-    _budgetAmountController.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -59,8 +59,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (context.read<SaveData>().budgets.isNotEmpty) {
       selectedBudget = context.read<SaveData>().budgets[0];
     } else {
-      selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-          Icons.money_off, Color.fromARGB(255, 128, 147, 241));
+      if (spent) {
+        selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+            Icons.money_off, const Color.fromARGB(255, 128, 147, 241));
+      } else {
+        selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+            Icons.attach_money, const Color.fromARGB(255, 128, 147, 241));
+      }
     }
   }
 
@@ -74,11 +79,24 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 500,
                 spent,
                 DateTime.now(),
-                Budget("sample", 0, DateTime.now(), DateTime.now(),
-                    Icons.attach_money, Color.fromARGB(255, 128, 147, 241))));
+                Budget(
+                    "sample",
+                    0,
+                    DateTime.now(),
+                    DateTime.now(),
+                    Icons.attach_money,
+                    const Color.fromARGB(255, 128, 147, 241))));
       }
-      if (!spent) {
-        selectedBudget.icon = Icons.attach_money;
+      if (spent) {
+        if (context.read<SaveData>().budgets.isNotEmpty) {
+          selectedBudget = context.read<SaveData>().budgets[0];
+        } else {
+          selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+              Icons.money_off, const Color.fromARGB(255, 128, 147, 241));
+        }
+      } else {
+        selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+            Icons.attach_money, const Color.fromARGB(255, 128, 147, 241));
       }
       context.read<SaveData>().addTransaction(Transaction(
           _transactionTitleController.text,
@@ -298,6 +316,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
               {
                 setState(() {
                   spent = value;
+                  selectedBudget = Budget(
+                      "sample",
+                      0,
+                      DateTime.now(),
+                      DateTime.now(),
+                      Icons.money_off,
+                      const Color.fromARGB(255, 128, 147, 241));
                 });
               }
             }),

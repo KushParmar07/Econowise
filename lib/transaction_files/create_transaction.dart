@@ -56,15 +56,17 @@ class _TransactionScreenState extends State<TransactionScreen> {
       selectedBudget = widget.currentTransaction!.budget;
     }
 
-    if (context.read<SaveData>().budgets.isNotEmpty) {
-      selectedBudget = context.read<SaveData>().budgets[0];
-    } else {
-      if (spent) {
-        selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-            Icons.money_off, const Color.fromARGB(255, 128, 147, 241));
+    if (widget.currentTransaction == null) {
+      if (context.read<SaveData>().budgets.isNotEmpty) {
+        selectedBudget = context.read<SaveData>().budgets[0];
       } else {
-        selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-            Icons.attach_money, const Color.fromARGB(255, 128, 147, 241));
+        if (spent) {
+          selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+              Icons.money_off, const Color.fromARGB(255, 128, 147, 241));
+        } else {
+          selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+              Icons.attach_money, const Color.fromARGB(255, 128, 147, 241));
+        }
       }
     }
   }
@@ -88,9 +90,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     const Color.fromARGB(255, 128, 147, 241))));
       }
       if (spent) {
-        if (context.read<SaveData>().budgets.isNotEmpty) {
-          selectedBudget = context.read<SaveData>().budgets[0];
-        } else {
+        if (context.read<SaveData>().budgets.isEmpty) {
           selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
               Icons.money_off, const Color.fromARGB(255, 128, 147, 241));
         }

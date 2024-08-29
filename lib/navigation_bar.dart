@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'transaction_files/transactions_page.dart';
 import 'budget_files/budget_page_layout.dart';
+import 'cashflow_files/cashflow_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class MenuSelecter extends StatefulWidget {
@@ -23,7 +24,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
   late List<Widget> body = [
     const BudgetPage(),
     const TransactionsPage(title: 'Transactions Page'),
-    const Icon(Icons.person)
+    const CashflowPage(),
   ];
 
   @override
@@ -43,7 +44,9 @@ class _MenuSelecterState extends State<MenuSelecter> {
               icon: Icon(Icons.article), label: "My Budget"),
           BottomNavigationBarItem(
               icon: Icon(Icons.account_balance), label: "Transactions"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "People")
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance_wallet),
+              label: "Cashflow Statements")
         ],
       ),
     );

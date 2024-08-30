@@ -44,9 +44,13 @@ dependencies:
   multiselect: ^0.1.1
   fl_chart: ^0.69.0
   flutter_echarts: ^2.5.0
-  syncfusion_flutter_charts: ^26.2.11
+  syncfusion_flutter_charts:
+    git:
+      url: https://github.com/fingineering/flutter-widgets.git
+      path: packages/syncfusion_flutter_charts
   fast_charts: ^0.2.0
 
+  intl: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

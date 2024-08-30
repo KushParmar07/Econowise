@@ -58,7 +58,7 @@ class _CashflowPageState extends State<CashflowPage> {
                 final axisRange = calculateYAxisRange(transactions);
 
                 return SfCartesianChart(
-                  primaryXAxis: CategoryAxis(),
+                  primaryXAxis: const CategoryAxis(),
                   primaryYAxis: NumericAxis(
                     minimum: axisRange.$1,
                     maximum: axisRange.$2,
@@ -85,34 +85,6 @@ class _CashflowPageState extends State<CashflowPage> {
         ),
       ),
     );
-  }
-
-  (double, double, double) calculateYAxisRange(List<Transaction> transactions) {
-    // Calculate total income and expenses for the active month and year
-    double totalIncome = getTotalIncome(activeMonth, activeYear).toDouble();
-    double totalExpenses = getTotalExpenses(activeMonth, activeYear).toDouble();
-
-    // Determine the range based on the higher of total income or total expenses
-    double range = max(totalIncome, totalExpenses);
-
-    // Handle the case where there are no transactions
-    if (range == 0) {
-      range = 100;
-    }
-
-    // Round up the range to the nearest 500 or multiple of 1000
-    if (range <= 500) {
-      range = 500;
-    } else {
-      int powerOfTen = (range.abs().toString().length - 1).clamp(2, 5);
-      double intervalBase = pow(10, powerOfTen).toDouble();
-      range = (range / intervalBase).ceil() * intervalBase;
-    }
-
-    // Calculate interval
-    double interval = 100 + ((range - 100) / 500).floor() * 100;
-
-    return (-range, range, interval);
   }
 
   void nextMonth() {
@@ -253,6 +225,48 @@ class _CashflowPageState extends State<CashflowPage> {
     return totalExpenses;
   }
 
+  (double, double, double) calculateYAxisRange(List<Transaction> transactions) {
+    double range = 0;
+    for (var transaction in transactions) {
+      if (transaction.date != null &&
+          transaction.date!.month == activeMonth &&
+          transaction.date!.year == activeYear) {
+        double transactionValue =
+            transaction.spent ? -transaction.amount : transaction.amount;
+        range = max(range, transactionValue.abs());
+      }
+    }
+
+    // Handle the case where there are no transactions
+    if (range == 0) {
+      range = 500;
+    }
+
+    // Round up the range to the nearest 100 up to 1000
+    if (range <= 1000) {
+      range = (range / 100).ceil() * 100;
+    }
+    // Round up to the nearest 1000 between 1000 and 10000
+    else if (range > 1000 && range < 10000) {
+      range = ((range + 500) / 1000).ceil() * 1000;
+    }
+    // For values above 10000, round up to the nearest 5000 or multiple of 10000, etc.
+    else {
+      int powerOfTen = (range.abs().toString().length - 1).clamp(2, 5);
+      double intervalBase = pow(10, powerOfTen).toDouble();
+      if (range / intervalBase > 0.5) {
+        range = (range / intervalBase).ceil() * intervalBase;
+      } else {
+        range = (range / (intervalBase / 10)).ceil() * (intervalBase / 10);
+      }
+    }
+
+    // Calculate interval
+    double interval = 100 + ((range - 100) / 500).floor() * 100;
+
+    return (-range, range, interval);
+  }
+
   List<ChartSeries<ChartData, String>> getChartSeriesData() {
     List<Transaction> transactions = context.read<SaveData>().transactions;
     List<Budget> budgets = context.read<SaveData>().budgets;
@@ -332,7 +346,7 @@ class _CashflowPageState extends State<CashflowPage> {
             .any((expenses) => expenses.containsKey('Other'))) {
       chartSeries.add(createSeriesForCategory(
         'Other',
-        Color.fromARGB(255, 128, 147, 241),
+        const Color.fromARGB(255, 128, 147, 241),
         weeksOfMonth,
         weeklyBudgetExpenses,
       ));
@@ -379,6 +393,7 @@ class _CashflowPageState extends State<CashflowPage> {
       yValueMapper: (ChartData data, _) => data.y,
       name: categoryName,
       color: color,
+      animationDuration: 0, // Disable animation
     );
   }
 

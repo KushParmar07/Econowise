@@ -1,5 +1,5 @@
 import 'dart:math';
-
+import 'package:collection/collection.dart';
 import 'package:econowise/budget_files/budget.dart';
 import 'package:econowise/transaction_files/transaction.dart';
 import 'package:flutter/material.dart';
@@ -280,120 +280,219 @@ class _CashflowPageState extends State<CashflowPage> {
     List<Transaction> transactions = context.read<SaveData>().transactions;
     List<Budget> budgets = context.read<SaveData>().budgets;
 
-    // 1. Get all weeks of the active month
-    List<DateTimeRange> weeksOfMonth = getWeeksOfMonth(activeYear, activeMonth);
+    if (isMonthlyView) {
+      // 1. Get all weeks of the active month
+      List<DateTimeRange> weeksOfMonth =
+          getWeeksOfMonth(activeYear, activeMonth);
 
-    // 2. Initialize weeklyBudgetExpenses with all weeks and budgets (or 'Other')
-    Map<DateTimeRange, Map<String, num>> weeklyBudgetExpenses = {};
-    for (var weekRange in weeksOfMonth) {
-      weeklyBudgetExpenses[weekRange] = {};
-      if (budgets.isNotEmpty) {
-        for (var budget in budgets) {
-          weeklyBudgetExpenses[weekRange]![budget.goal] = 0;
+      // 2. Initialize weeklyBudgetExpenses with all weeks and budgets (or 'Other')
+      Map<DateTimeRange, Map<String, num>> weeklyBudgetExpenses = {};
+      for (var weekRange in weeksOfMonth) {
+        weeklyBudgetExpenses[weekRange] = {};
+        if (budgets.isNotEmpty) {
+          for (var budget in budgets) {
+            weeklyBudgetExpenses[weekRange]![budget.goal] = 0;
+          }
+        }
+        // Always initialize 'Other' even if there are other budgets
+        weeklyBudgetExpenses[weekRange]!['Other'] = 0;
+        weeklyBudgetExpenses[weekRange]!['Income'] = 0;
+      }
+
+      // 3. Group transactions by week range and budget/income (update existing values)
+      for (var transaction in transactions) {
+        if (transaction.date != null &&
+            transaction.date!.month == activeMonth &&
+            transaction.date!.year == activeYear) {
+          DateTimeRange? weekRange = weeksOfMonth.firstWhereOrNull(
+            (range) =>
+                transaction.date!
+                    .isAfter(range.start.subtract(const Duration(days: 1))) &&
+                transaction.date!
+                    .isBefore(range.end.add(const Duration(days: 1))),
+          );
+
+          String categoryName;
+          num transactionValue;
+
+          if (transaction.spent) {
+            categoryName = budgets.any((b) => b.goal == transaction.budget.goal)
+                ? transaction.budget.goal
+                : 'Other';
+            transactionValue = -transaction.amount; // Expenses are negative
+          } else {
+            categoryName = 'Income';
+            transactionValue = transaction.amount; // Income is positive
+          }
+
+          weeklyBudgetExpenses[weekRange]![categoryName] =
+              (weeklyBudgetExpenses[weekRange]![categoryName]! +
+                  transactionValue);
         }
       }
-      // Always initialize 'Other' even if there are other budgets
-      weeklyBudgetExpenses[weekRange]!['Other'] = 0;
-      weeklyBudgetExpenses[weekRange]!['Income'] = 0;
-    }
 
-    // 3. Group transactions by week range and budget/income (update existing values)
-    for (var transaction in transactions) {
-      if (transaction.date != null &&
-          transaction.date!.month == activeMonth &&
-          transaction.date!.year == activeYear) {
-        DateTimeRange? weekRange = weeksOfMonth.firstWhere(
-          (range) =>
-              transaction.date!.isAfter(range.start) &&
-              transaction.date!.isBefore(range.end),
-          orElse: () => weeksOfMonth.last,
-        );
-
-        String categoryName;
-        num transactionValue;
-
-        if (transaction.spent) {
-          categoryName = budgets.any((b) => b.goal == transaction.budget.goal)
-              ? transaction.budget.goal
-              : 'Other';
-          transactionValue = -transaction.amount; // Expenses are negative
-        } else {
-          categoryName = 'Income';
-          transactionValue = transaction.amount; // Income is positive
-        }
-
-        weeklyBudgetExpenses[weekRange]![categoryName] =
-            (weeklyBudgetExpenses[weekRange]![categoryName]! +
-                transactionValue);
+      // 4. Calculate min, max, and interval for the y-axis
+      num minValue = 0;
+      num maxValue = 0;
+      for (var weekExpenses in weeklyBudgetExpenses.values) {
+        num weekTotal =
+            weekExpenses.values.fold(0, (sum, value) => sum + value);
+        minValue = min(minValue, weekTotal);
+        maxValue = max(maxValue, weekTotal);
       }
+
+      // Adjust min/max to ensure some padding around the data
+      minValue = minValue * 1.1; // 10% padding below
+      maxValue = maxValue * 1.1; // 10% padding above
+
+      // Calculate a suitable interval
+      num interval =
+          (maxValue - minValue) / 5; // Divide the range into 5 intervals
+      interval = (interval / 100).ceil() * 100; // Round up to the nearest 100
+
+      // 5. Create ChartSeries
+      List<ChartSeries<ChartData, String>> chartSeries = [];
+
+      // Handle the case where there are no budgets at all OR there are 'Other' expenses
+      if ((budgets.isEmpty && weeklyBudgetExpenses.isNotEmpty) ||
+          weeklyBudgetExpenses.values
+              .any((expenses) => expenses.containsKey('Other'))) {
+        chartSeries.add(createSeriesForCategory(
+          'Other',
+          const Color.fromARGB(255, 128, 147, 241),
+          weeksOfMonth,
+          weeklyBudgetExpenses,
+        ));
+      }
+
+      // Create series for each budget
+      for (var budget in budgets) {
+        chartSeries.add(
+            createSeriesForBudget(budget, weeksOfMonth, weeklyBudgetExpenses));
+      }
+
+      // Always include the 'Income' series if there's any income
+      if (weeklyBudgetExpenses.values
+          .any((expenses) => expenses.containsKey('Income'))) {
+        chartSeries.add(createSeriesForCategory(
+          'Income',
+          Colors.green,
+          weeksOfMonth,
+          weeklyBudgetExpenses,
+        ));
+      }
+
+      return chartSeries;
+    } else {
+      // Yearly view
+      // 1. Get all months of the active year
+      List<int> monthsOfYear = List.generate(12, (index) => index + 1);
+
+      // 2. Initialize monthlyBudgetExpenses with all months and budgets (or 'Other')
+      Map<int, Map<String, num>> monthlyBudgetExpenses = {};
+      for (var month in monthsOfYear) {
+        monthlyBudgetExpenses[month] = {};
+        if (budgets.isNotEmpty) {
+          for (var budget in budgets) {
+            monthlyBudgetExpenses[month]![budget.goal] = 0;
+          }
+        }
+        // Always initialize 'Other' even if there are other budgets
+        monthlyBudgetExpenses[month]!['Other'] = 0;
+        monthlyBudgetExpenses[month]!['Income'] = 0;
+      }
+
+      // 3. Group transactions by month and budget/income (update existing values)
+      for (var transaction in transactions) {
+        if (transaction.date != null && transaction.date!.year == activeYear) {
+          int month = transaction.date!.month;
+
+          String categoryName;
+          num transactionValue;
+
+          if (transaction.spent) {
+            categoryName = budgets.any((b) => b.goal == transaction.budget.goal)
+                ? transaction.budget.goal
+                : 'Other';
+            transactionValue = -transaction.amount; // Expenses are negative
+          } else {
+            categoryName = 'Income';
+            transactionValue = transaction.amount; // Income is positive
+          }
+
+          monthlyBudgetExpenses[month]![categoryName] =
+              (monthlyBudgetExpenses[month]![categoryName]! + transactionValue);
+        }
+      }
+
+      // 4. Calculate min, max, and interval for the y-axis
+      num minValue = 0;
+      num maxValue = 0;
+      for (var monthExpenses in monthlyBudgetExpenses.values) {
+        num monthTotal =
+            monthExpenses.values.fold(0, (sum, value) => sum + value);
+        minValue = min(minValue, monthTotal);
+        maxValue = max(maxValue, monthTotal);
+      }
+
+      // Adjust min/max to ensure some padding around the data
+      minValue = minValue * 1.1; // 10% padding below
+      maxValue = maxValue * 1.1; // 10% padding above
+
+      // Calculate a suitable interval
+      num interval =
+          (maxValue - minValue) / 5; // Divide the range into 5 intervals
+      interval = (interval / 100).ceil() * 100; // Round up to the nearest 100
+
+      // 5. Create ChartSeries
+      List<ChartSeries<ChartData, String>> chartSeries = [];
+
+      // Handle the case where there are no budgets at all OR there are 'Other' expenses
+      if ((budgets.isEmpty && monthlyBudgetExpenses.isNotEmpty) ||
+          monthlyBudgetExpenses.values
+              .any((expenses) => expenses.containsKey('Other'))) {
+        chartSeries.add(createSeriesForCategory(
+          'Other',
+          const Color.fromARGB(255, 128, 147, 241),
+          monthsOfYear,
+          monthlyBudgetExpenses,
+        ));
+      }
+
+      // Create series for each budget
+      for (var budget in budgets) {
+        chartSeries.add(
+            createSeriesForBudget(budget, monthsOfYear, monthlyBudgetExpenses));
+      }
+
+      // Always include the 'Income' series if there's any income
+      if (monthlyBudgetExpenses.values
+          .any((expenses) => expenses.containsKey('Income'))) {
+        chartSeries.add(createSeriesForCategory(
+          'Income',
+          Colors.green,
+          monthsOfYear,
+          monthlyBudgetExpenses,
+        ));
+      }
+
+      return chartSeries;
     }
-
-    // 4. Calculate min, max, and interval for the y-axis
-    num minValue = 0;
-    num maxValue = 0;
-    for (var weekExpenses in weeklyBudgetExpenses.values) {
-      num weekTotal = weekExpenses.values.fold(0, (sum, value) => sum + value);
-      minValue = min(minValue, weekTotal);
-      maxValue = max(maxValue, weekTotal);
-    }
-
-    // Adjust min/max to ensure some padding around the data
-    minValue = minValue * 1.1; // 10% padding below
-    maxValue = maxValue * 1.1; // 10% padding above
-
-    // Calculate a suitable interval
-    num interval =
-        (maxValue - minValue) / 5; // Divide the range into 5 intervals
-    interval = (interval / 100).ceil() * 100; // Round up to the nearest 100
-
-    // 5. Create ChartSeries
-    List<ChartSeries<ChartData, String>> chartSeries = [];
-
-    // Handle the case where there are no budgets at all OR there are 'Other' expenses
-    if ((budgets.isEmpty && weeklyBudgetExpenses.isNotEmpty) ||
-        weeklyBudgetExpenses.values
-            .any((expenses) => expenses.containsKey('Other'))) {
-      chartSeries.add(createSeriesForCategory(
-        'Other',
-        const Color.fromARGB(255, 128, 147, 241),
-        weeksOfMonth,
-        weeklyBudgetExpenses,
-      ));
-    }
-
-    // Create series for each budget
-    for (var budget in budgets) {
-      chartSeries.add(
-          createSeriesForBudget(budget, weeksOfMonth, weeklyBudgetExpenses));
-    }
-
-    // Always include the 'Income' series if there's any income
-    if (weeklyBudgetExpenses.values
-        .any((expenses) => expenses.containsKey('Income'))) {
-      chartSeries.add(createSeriesForCategory(
-        'Income',
-        Colors.green,
-        weeksOfMonth,
-        weeklyBudgetExpenses,
-      ));
-    }
-
-    return chartSeries;
   }
 
 // Generalized function to create series for both budgets and income
   ChartSeries<ChartData, String> createSeriesForCategory(
       String categoryName,
       Color color,
-      List<DateTimeRange> weeksOfMonth,
-      Map<DateTimeRange, Map<String, num>> weeklyBudgetExpenses) {
+      List<dynamic> timePeriods, // Can be weeksOfMonth or monthsOfYear
+      Map<dynamic, Map<String, num>> budgetExpenses) {
     List<ChartData> chartData = [];
-    for (var weekRange in weeksOfMonth) {
-      num valueForCategory =
-          weeklyBudgetExpenses[weekRange]![categoryName] ?? 0;
-      String weekLabel =
-          '${DateFormat('MMM d').format(weekRange.start)} - ${DateFormat('d').format(weekRange.end)}';
-      chartData.add(ChartData(weekLabel, valueForCategory));
+    for (var timePeriod in timePeriods) {
+      num valueForCategory = budgetExpenses[timePeriod]![categoryName] ?? 0;
+      String timePeriodLabel = isMonthlyView
+          ? '${DateFormat('MMM d').format((timePeriod as DateTimeRange).start)} - ${DateFormat('d').format((timePeriod as DateTimeRange).end)}'
+          : DateFormat.MMM().format(DateTime(activeYear, timePeriod as int, 1));
+      chartData.add(ChartData(timePeriodLabel, valueForCategory));
     }
 
     return StackedColumnSeries<ChartData, String>(
@@ -408,14 +507,15 @@ class _CashflowPageState extends State<CashflowPage> {
 
   ChartSeries<ChartData, String> createSeriesForBudget(
       Budget budget,
-      List<DateTimeRange> weeksOfMonth,
-      Map<DateTimeRange, Map<String, num>> weeklyBudgetExpenses) {
+      List<dynamic> timePeriods, // Can be weeksOfMonth or monthsOfYear
+      Map<dynamic, Map<String, num>> budgetExpenses) {
     List<ChartData> chartData = [];
-    for (var weekRange in weeksOfMonth) {
-      num expenseForBudget = weeklyBudgetExpenses[weekRange]![budget.goal] ?? 0;
-      String weekLabel =
-          '${DateFormat('MMM d').format(weekRange.start)} - ${DateFormat('d').format(weekRange.end)}';
-      chartData.add(ChartData(weekLabel, expenseForBudget));
+    for (var timePeriod in timePeriods) {
+      num expenseForBudget = budgetExpenses[timePeriod]![budget.goal] ?? 0;
+      String timePeriodLabel = isMonthlyView
+          ? '${DateFormat('MMM d').format((timePeriod as DateTimeRange).start)} - ${DateFormat('d').format((timePeriod as DateTimeRange).end)}'
+          : DateFormat.MMM().format(DateTime(activeYear, timePeriod as int, 1));
+      chartData.add(ChartData(timePeriodLabel, expenseForBudget));
     }
 
     return StackedColumnSeries<ChartData, String>(

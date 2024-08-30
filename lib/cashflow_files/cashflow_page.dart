@@ -63,6 +63,15 @@ class _CashflowPageState extends State<CashflowPage> {
                     minimum: axisRange.$1,
                     maximum: axisRange.$2,
                     interval: axisRange.$3,
+                    labelFormat: '{value}', // Display the raw value
+                    numberFormat: NumberFormat.compactCurrency(
+                      // Use compact currency formatting
+                      symbol: '\$',
+                      decimalDigits: 0, // No decimal places
+                    ),
+                    labelStyle: const TextStyle(
+                        overflow: TextOverflow
+                            .visible), // Allow labels to overflow and wrap
                   ),
                   series: chartSeries,
                   onSelectionChanged: (SelectionArgs args) {
@@ -540,7 +549,7 @@ Widget financialSummaryRow({
           : Colors.red;
 
   return Padding(
-    padding: const EdgeInsets.fromLTRB(30, 3, 50, 3),
+    padding: const EdgeInsets.fromLTRB(12, 3, 12, 3),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -551,7 +560,7 @@ Widget financialSummaryRow({
         Row(
           children: [
             Text(
-              "${value.toStringAsFixed(2)}\$",
+              formatFinancial(value) + "\$",
               style: TextStyle(
                 fontSize: 16,
                 color: valueColor,
@@ -579,6 +588,18 @@ Widget financialSummaryRow({
       ],
     ),
   );
+}
+
+String formatFinancial(num value) {
+  if (value == 0) return "0.00";
+
+  final suffixes = ['', 'K', 'M', 'B', 'T'];
+  var magnitude = 0;
+  while (value.abs() >= 1000) {
+    magnitude += 1;
+    value /= 1000;
+  }
+  return '${value.toStringAsFixed(2)}${suffixes[magnitude]}';
 }
 
 class ChartData {

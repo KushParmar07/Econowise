@@ -346,6 +346,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
         SizedBox(
           height: 60,
           child: TextField(
+            maxLength: 12,
             controller: _transactionAmountController,
             decoration: InputDecoration(
               hintText: '\$0.00',

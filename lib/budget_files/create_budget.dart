@@ -92,7 +92,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   @override
   void initState() {
-    context.read<SaveData>().categories.remove("");
     super.initState();
     if (widget.currentBudget != null) {
       _budgetTitleController.text = widget.currentBudget!.goal;
@@ -139,7 +138,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
   void back() {
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const MenuSelecter(index: 0)));
-    context.read<SaveData>().categories.insert(0, "");
   }
 
   void pickColor(BuildContext context) => showDialog(

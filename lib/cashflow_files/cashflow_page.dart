@@ -25,6 +25,14 @@ class _CashflowPageState extends State<CashflowPage> {
   Offset? tooltipPosition;
 
   @override
+  void initState() {
+    super.initState();
+    activeMonth = context.read<SaveData>().activeMonth;
+    activeYear = context.read<SaveData>().activeYear;
+    isMonthlyView = context.read<SaveData>().isMonthlyView;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -127,6 +135,8 @@ class _CashflowPageState extends State<CashflowPage> {
       } else {
         activeYear += 1;
       }
+      context.read<SaveData>().activeMonth = activeMonth;
+      context.read<SaveData>().activeYear = activeYear;
     });
   }
 
@@ -141,12 +151,15 @@ class _CashflowPageState extends State<CashflowPage> {
       } else {
         activeYear -= 1;
       }
+      context.read<SaveData>().activeMonth = activeMonth;
+      context.read<SaveData>().activeYear = activeYear;
     });
   }
 
   void toggleView() {
     setState(() {
       isMonthlyView = !isMonthlyView;
+      context.read<SaveData>().isMonthlyView = isMonthlyView;
     });
   }
 
@@ -392,6 +405,22 @@ class _CashflowPageState extends State<CashflowPage> {
 
     // Calculate interval
     double interval = 100 + ((range - 100) / 500).floor() * 100;
+    double minValue = -range; // Start with the negative of the calculated range
+    double maxValue = range;
+
+    if (minValue > 0) {
+      minValue = 0; // If minValue is positive, set it to 0
+    } else if (maxValue < 0) {
+      maxValue = 0; // If maxValue is negative, set it to 0
+    }
+
+    // Round up maxValue and round down minValue to the nearest interval mark
+    maxValue = (maxValue / interval).ceil() * interval;
+    minValue = (minValue / interval).floor() * interval;
+
+    // Recalculate interval if necessary
+    interval = (maxValue - minValue) / 10;
+    interval = (interval / 100).ceil() * 100;
 
     return (-range, range, interval);
   }

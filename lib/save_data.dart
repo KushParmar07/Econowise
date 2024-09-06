@@ -5,7 +5,9 @@ import 'budget_files/budget.dart';
 class SaveData extends ChangeNotifier {
   final List<Transaction> _transactions = [];
   final List<Budget> _budgets = [];
-  final List<String> _categories = [""];
+  int _activeMonth = DateTime.now().month;
+  int _activeYear = DateTime.now().year;
+  bool _isMonthlyView = true;
 
   List<Transaction> get transactions => _transactions;
   List<Transaction> get dateSortedTransactionsDescending {
@@ -33,7 +35,10 @@ class SaveData extends ChangeNotifier {
   }
 
   List<Budget> get budgets => _budgets;
-  List<String> get categories => _categories;
+
+  int get activeMonth => _activeMonth;
+  int get activeYear => _activeYear;
+  bool get isMonthlyView => _isMonthlyView;
 
   void addTransaction(Transaction transaction) {
     transactions.add(transaction);
@@ -45,13 +50,6 @@ class SaveData extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addCategory(String category) {
-    if (!categories.contains(category)) {
-      categories.add(category);
-    }
-    notifyListeners();
-  }
-
   void deleteTransaction(Transaction transaction) {
     transactions.remove(transaction);
     notifyListeners();
@@ -59,11 +57,6 @@ class SaveData extends ChangeNotifier {
 
   void deleteBudget(Budget budget) {
     budgets.remove(budget);
-    notifyListeners();
-  }
-
-  void deleteCategory(String category) {
-    categories.remove(category);
     notifyListeners();
   }
 
@@ -86,5 +79,20 @@ class SaveData extends ChangeNotifier {
     }
 
     budgets[budgets.indexOf(budget)].totalUsed = totalSpent;
+  }
+
+  set activeMonth(int month) {
+    _activeMonth = month;
+    notifyListeners(); // Notify listeners about the change
+  }
+
+  set activeYear(int year) {
+    _activeYear = year;
+    notifyListeners();
+  }
+
+  set isMonthlyView(bool isMonthly) {
+    _isMonthlyView = isMonthly;
+    notifyListeners();
   }
 }

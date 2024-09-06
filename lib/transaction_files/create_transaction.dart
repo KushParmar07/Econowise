@@ -62,10 +62,10 @@ class _TransactionScreenState extends State<TransactionScreen> {
       } else {
         if (spent) {
           selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-              Icons.money_off, const Color.fromARGB(255, 128, 147, 241));
+              Icons.money_off, Colors.red);
         } else {
           selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-              Icons.attach_money, const Color.fromARGB(255, 128, 147, 241));
+              Icons.attach_money, Colors.green);
         }
       }
     }
@@ -92,11 +92,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
       if (spent) {
         if (context.read<SaveData>().budgets.isEmpty) {
           selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-              Icons.money_off, const Color.fromARGB(255, 128, 147, 241));
+              Icons.money_off, Colors.red);
         }
       } else {
         selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-            Icons.attach_money, const Color.fromARGB(255, 128, 147, 241));
+            Icons.attach_money, Colors.green);
       }
       context.read<SaveData>().addTransaction(Transaction(
           _transactionTitleController.text,
@@ -316,13 +316,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
               {
                 setState(() {
                   spent = value;
-                  selectedBudget = Budget(
-                      "sample",
-                      0,
-                      DateTime.now(),
-                      DateTime.now(),
-                      Icons.money_off,
-                      const Color.fromARGB(255, 128, 147, 241));
+                  selectedBudget = Budget("sample", 0, DateTime.now(),
+                      DateTime.now(), Icons.money_off, Colors.red);
                 });
               }
             }),

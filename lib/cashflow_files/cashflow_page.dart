@@ -20,6 +20,10 @@ class _CashflowPageState extends State<CashflowPage> {
   int activeYear = DateTime.now().year;
   bool isMonthlyView = true;
 
+  bool showTooltip = false;
+  String? tooltipText;
+  Offset? tooltipPosition;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,43 +54,59 @@ class _CashflowPageState extends State<CashflowPage> {
                 getTotalCashflowChange(),
                 isMonthlyView,
                 toggleView),
+            const SizedBox(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                const Center(
+                    child: Text("Spending Analysis",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w600))),
+                DropdownButton<String>(
+                  value: isMonthlyView ? 'Monthly' : 'Yearly',
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      toggleView();
+                    }
+                  },
+                  items: <String>['Monthly', 'Yearly']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
             Consumer<SaveData>(
               builder: (context, saveData, _) {
                 final transactions = saveData.transactions;
+                final budgets = saveData.budgets;
                 final chartSeries =
                     getChartSeriesData().cast<CartesianSeries>();
-                final axisRange = calculateYAxisRange(transactions);
+                final axisRange = calculateYAxisRange(transactions, budgets);
 
-                return SfCartesianChart(
-                  primaryXAxis: const CategoryAxis(),
-                  primaryYAxis: NumericAxis(
-                    minimum: axisRange.$1,
-                    maximum: axisRange.$2,
-                    interval: axisRange.$3,
-                    labelFormat: '{value}', // Display the raw value
-                    numberFormat: NumberFormat.compactCurrency(
-                      // Use compact currency formatting
-                      symbol: '\$',
-                      decimalDigits: 0, // No decimal places
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 0, 16, 16),
+                  child: SfCartesianChart(
+                    primaryXAxis: const CategoryAxis(),
+                    primaryYAxis: NumericAxis(
+                      minimum: axisRange.$1,
+                      maximum: axisRange.$2,
+                      interval: axisRange.$3,
+                      labelFormat: '{value}', // Display the raw value
+                      numberFormat: NumberFormat.compactCurrency(
+                        // Use compact currency formatting
+                        symbol: '\$',
+                        decimalDigits: 0, // No decimal places
+                      ),
+                      labelStyle: const TextStyle(
+                          overflow: TextOverflow
+                              .visible), // Allow labels to overflow and wrap
                     ),
-                    labelStyle: const TextStyle(
-                        overflow: TextOverflow
-                            .visible), // Allow labels to overflow and wrap
+                    series: chartSeries,
                   ),
-                  series: chartSeries,
-                  onSelectionChanged: (SelectionArgs args) {
-                    if (args.pointIndex != null &&
-                        args.seriesIndex != null &&
-                        args.seriesIndex! < chartSeries.length) {
-                      final series =
-                          chartSeries[args.seriesIndex!] as StackedColumnSeries;
-                      final budgetName = series.name ?? 'Other';
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Budget: $budgetName')),
-                      );
-                    }
-                  },
                 );
               },
             ),
@@ -234,22 +254,122 @@ class _CashflowPageState extends State<CashflowPage> {
     return totalExpenses;
   }
 
-  (double, double, double) calculateYAxisRange(List<Transaction> transactions) {
+  (double, double, double) calculateYAxisRange(
+      List<Transaction> transactions, List<Budget> budgets) {
     double range = 0;
-    for (var transaction in transactions) {
-      if (transaction.date != null &&
-          transaction.date!.month == activeMonth &&
-          transaction.date!.year == activeYear) {
-        double transactionValue =
-            transaction.spent ? -transaction.amount : transaction.amount;
-        range = max(range, transactionValue.abs());
+
+    if (isMonthlyView) {
+      // 1. Get all weeks of the active month
+      List<DateTimeRange> weeksOfMonth =
+          getWeeksOfMonth(activeYear, activeMonth);
+
+      // 2. Initialize weeklyTotals with all weeks
+      Map<DateTimeRange, double> weeklyTotals = {};
+      for (var week in weeksOfMonth) {
+        weeklyTotals[week] = 0;
+      }
+
+      // 3. Accumulate values for each week and category/budget
+      Map<DateTimeRange, Map<String, num>> weeklyCategoryTotals = {};
+      for (var transaction in transactions) {
+        if (transaction.date != null &&
+            transaction.date!.month == activeMonth &&
+            transaction.date!.year == activeYear) {
+          DateTimeRange? weekRange = weeksOfMonth.firstWhereOrNull(
+            (range) =>
+                transaction.date!.isAfter(range.start) &&
+                transaction.date!.isBefore(range.end),
+          );
+
+          if (weekRange != null) {
+            String categoryName = transaction.spent
+                ? (transaction.budget != null &&
+                        budgets.any((b) => b.goal == transaction.budget!.goal)
+                    ? transaction.budget!.goal
+                    : 'Other')
+                : 'Income';
+            double transactionValue =
+                transaction.spent ? -transaction.amount : transaction.amount;
+
+            // Accumulate values for each category within the week
+            weeklyCategoryTotals[weekRange] ??= {};
+            weeklyCategoryTotals[weekRange]![categoryName] =
+                (weeklyCategoryTotals[weekRange]![categoryName] ?? 0) +
+                    transactionValue;
+          }
+        }
+      }
+
+      // 4. Find the maximum absolute sum of values for each week
+      for (var week in weeksOfMonth) {
+        double weekTotal = 0;
+        for (var categoryTotal in weeklyCategoryTotals[week]?.values ?? []) {
+          categoryTotal = categoryTotal as num;
+          weekTotal += categoryTotal; // Sum the category totals for the week
+        }
+        range = max(range, weekTotal.abs()); // Update range based on the total
+      }
+    } else {
+      // Yearly view
+      // 1. Get all months of the active year
+      List<int> monthsOfYear = List.generate(12, (index) => index + 1);
+
+      // 2. Initialize monthlyTotals with all months
+      Map<int, double> monthlyTotals = {};
+      for (var month in monthsOfYear) {
+        monthlyTotals[month] = 0;
+      }
+
+      // 3. Accumulate values for each month and category/budget
+      Map<int, Map<String, num>> monthlyCategoryTotals = {};
+      for (var transaction in transactions) {
+        if (transaction.date != null && transaction.date!.year == activeYear) {
+          int month = transaction.date!.month;
+          String categoryName = transaction.spent
+              ? (transaction.budget != null &&
+                      budgets.any((b) => b.goal == transaction.budget!.goal)
+                  ? transaction.budget!.goal
+                  : 'Other')
+              : 'Income';
+          double transactionValue =
+              transaction.spent ? -transaction.amount : transaction.amount;
+
+          // Accumulate values for each category within the month
+          monthlyCategoryTotals[month] ??= {};
+          monthlyCategoryTotals[month]![categoryName] =
+              (monthlyCategoryTotals[month]![categoryName] ?? 0) +
+                  transactionValue;
+        }
+      }
+
+      // 4. Find the maximum absolute sum of incomes and expenses separately for each month
+      for (var month in monthsOfYear) {
+        double monthIncomeTotal = 0;
+        double monthExpenseTotal = 0;
+
+        for (var categoryTotal in monthlyCategoryTotals[month]?.values ?? []) {
+          categoryTotal = categoryTotal as double;
+          if (categoryTotal > 0) {
+            // Income
+            monthIncomeTotal += categoryTotal;
+          } else {
+            // Expense
+            monthExpenseTotal += categoryTotal.abs();
+          }
+        }
+
+        // Take the maximum of income and expense totals for the month
+        range = max(range, max(monthIncomeTotal, monthExpenseTotal));
       }
     }
 
-    // Handle the case where there are no transactions
+    // Handle the case where there are no transactions (after filtering)
     if (range == 0) {
-      range = 500;
+      range = 500; // Or any other suitable default value
     }
+
+    // Ensure 0 is in the middle and scale accordingly
+    range = max(range, 500);
 
     // Round up the range to the nearest 100 up to 1000
     if (range <= 1000) {
@@ -359,7 +479,7 @@ class _CashflowPageState extends State<CashflowPage> {
               .any((expenses) => expenses.containsKey('Other'))) {
         chartSeries.add(createSeriesForCategory(
           'Other',
-          const Color.fromARGB(255, 128, 147, 241),
+          Colors.red,
           weeksOfMonth,
           weeklyBudgetExpenses,
         ));
@@ -367,8 +487,8 @@ class _CashflowPageState extends State<CashflowPage> {
 
       // Create series for each budget
       for (var budget in budgets) {
-        chartSeries.add(
-            createSeriesForBudget(budget, weeksOfMonth, weeklyBudgetExpenses));
+        chartSeries.add(createSeriesForBudget(
+            budget, weeksOfMonth, weeklyBudgetExpenses, context));
       }
 
       // Always include the 'Income' series if there's any income
@@ -453,7 +573,7 @@ class _CashflowPageState extends State<CashflowPage> {
               .any((expenses) => expenses.containsKey('Other'))) {
         chartSeries.add(createSeriesForCategory(
           'Other',
-          const Color.fromARGB(255, 128, 147, 241),
+          Colors.red,
           monthsOfYear,
           monthlyBudgetExpenses,
         ));
@@ -461,8 +581,8 @@ class _CashflowPageState extends State<CashflowPage> {
 
       // Create series for each budget
       for (var budget in budgets) {
-        chartSeries.add(
-            createSeriesForBudget(budget, monthsOfYear, monthlyBudgetExpenses));
+        chartSeries.add(createSeriesForBudget(
+            budget, monthsOfYear, monthlyBudgetExpenses, context));
       }
 
       // Always include the 'Income' series if there's any income
@@ -490,7 +610,7 @@ class _CashflowPageState extends State<CashflowPage> {
     for (var timePeriod in timePeriods) {
       num valueForCategory = budgetExpenses[timePeriod]![categoryName] ?? 0;
       String timePeriodLabel = isMonthlyView
-          ? '${DateFormat('MMM d').format((timePeriod as DateTimeRange).start)} - ${DateFormat('d').format((timePeriod as DateTimeRange).end)}'
+          ? '${DateFormat('MMM d').format((timePeriod as DateTimeRange).start)} - ${DateFormat('d').format((timePeriod).end)}'
           : DateFormat.MMM().format(DateTime(activeYear, timePeriod as int, 1));
       chartData.add(ChartData(timePeriodLabel, valueForCategory));
     }
@@ -501,19 +621,20 @@ class _CashflowPageState extends State<CashflowPage> {
       yValueMapper: (ChartData data, _) => data.y,
       name: categoryName,
       color: color,
-      animationDuration: 0, // Disable animation
+      animationDuration: 0,
     );
   }
 
   ChartSeries<ChartData, String> createSeriesForBudget(
       Budget budget,
       List<dynamic> timePeriods, // Can be weeksOfMonth or monthsOfYear
-      Map<dynamic, Map<String, num>> budgetExpenses) {
+      Map<dynamic, Map<String, num>> budgetExpenses,
+      BuildContext context) {
     List<ChartData> chartData = [];
     for (var timePeriod in timePeriods) {
       num expenseForBudget = budgetExpenses[timePeriod]![budget.goal] ?? 0;
       String timePeriodLabel = isMonthlyView
-          ? '${DateFormat('MMM d').format((timePeriod as DateTimeRange).start)} - ${DateFormat('d').format((timePeriod as DateTimeRange).end)}'
+          ? '${DateFormat('MMM d').format((timePeriod as DateTimeRange).start)} - ${DateFormat('d').format((timePeriod).end)}'
           : DateFormat.MMM().format(DateTime(activeYear, timePeriod as int, 1));
       chartData.add(ChartData(timePeriodLabel, expenseForBudget));
     }
@@ -524,26 +645,27 @@ class _CashflowPageState extends State<CashflowPage> {
       yValueMapper: (ChartData data, _) => data.y,
       name: budget.goal,
       color: budget.color,
+      animationDuration: 0,
     );
   }
+}
 
-  List<DateTimeRange> getWeeksOfMonth(int year, int month) {
-    List<DateTimeRange> weeks = [];
-    DateTime firstDayOfMonth = DateTime(year, month, 1);
-    DateTime lastDayOfMonth = DateTime(year, month + 1, 0);
+List<DateTimeRange> getWeeksOfMonth(int year, int month) {
+  List<DateTimeRange> weeks = [];
+  DateTime firstDayOfMonth = DateTime(year, month, 1);
+  DateTime lastDayOfMonth = DateTime(year, month + 1, 0);
 
-    DateTime currentWeekStart = firstDayOfMonth;
-    while (currentWeekStart.isBefore(lastDayOfMonth)) {
-      DateTime currentWeekEnd = currentWeekStart.add(const Duration(days: 6));
-      if (currentWeekEnd.isAfter(lastDayOfMonth)) {
-        currentWeekEnd = lastDayOfMonth;
-      }
-      weeks.add(DateTimeRange(start: currentWeekStart, end: currentWeekEnd));
-      currentWeekStart = currentWeekEnd.add(const Duration(days: 1));
+  DateTime currentWeekStart = firstDayOfMonth;
+  while (currentWeekStart.isBefore(lastDayOfMonth)) {
+    DateTime currentWeekEnd = currentWeekStart.add(const Duration(days: 6));
+    if (currentWeekEnd.isAfter(lastDayOfMonth)) {
+      currentWeekEnd = lastDayOfMonth;
     }
-
-    return weeks;
+    weeks.add(DateTimeRange(start: currentWeekStart, end: currentWeekEnd));
+    currentWeekStart = currentWeekEnd.add(const Duration(days: 1));
   }
+
+  return weeks;
 }
 
 Widget topBar(
@@ -595,21 +717,6 @@ Widget topBar(
           ],
         ),
       ),
-      DropdownButton<String>(
-        value: isMonthlyView ? 'Monthly' : 'Yearly',
-        onChanged: (String? newValue) {
-          if (newValue != null) {
-            onToggleView();
-          }
-        },
-        items: <String>['Monthly', 'Yearly']
-            .map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-      ),
       financialSummaryRow(
         title: "Total Income:",
         value: totalIncome,
@@ -660,7 +767,7 @@ Widget financialSummaryRow({
         Row(
           children: [
             Text(
-              formatFinancial(value) + "\$",
+              "${formatFinancial(value)}\$",
               style: TextStyle(
                 fontSize: 16,
                 color: valueColor,

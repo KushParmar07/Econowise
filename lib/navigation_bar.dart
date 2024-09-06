@@ -15,6 +15,7 @@ class MenuSelecter extends StatefulWidget {
 
 class _MenuSelecterState extends State<MenuSelecter> {
   late int _currentIndex = widget.index;
+  String appBarTitle = "Budgets";
 
   @override
   void initState() {
@@ -23,13 +24,26 @@ class _MenuSelecterState extends State<MenuSelecter> {
 
   late List<Widget> body = [
     const BudgetPage(),
-    const TransactionsPage(title: 'Transactions Page'),
+    const TransactionsPage(),
     const CashflowPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(appBarTitle),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.settings,
+                size: 40,
+              ))
+        ],
+      ),
       body: body[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -37,16 +51,26 @@ class _MenuSelecterState extends State<MenuSelecter> {
           setState(() {
             Fluttertoast.cancel();
             _currentIndex = newIndex;
+            switch (_currentIndex) {
+              case 0:
+                appBarTitle = "Budgets";
+                break;
+              case 1:
+                appBarTitle = "Transactions";
+                break;
+              case 2:
+                appBarTitle = "Overview";
+                break;
+            }
           });
         },
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.article), label: "My Budget"),
+              icon: Icon(Icons.checklist_rtl), label: "Budgets"),
           BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance), label: "Transactions"),
+              icon: Icon(Icons.account_balance_wallet), label: "Transactions"),
           BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet),
-              label: "Cashflow Statements")
+              icon: Icon(Icons.bar_chart), label: "Overview")
         ],
       ),
     );

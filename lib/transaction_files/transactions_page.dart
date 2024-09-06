@@ -8,10 +8,7 @@ import 'transaction.dart';
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({
     super.key,
-    required this.title,
   });
-
-  final String title;
 
   @override
   State<TransactionsPage> createState() => _TransactionsPageState();
@@ -40,35 +37,29 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
-          centerTitle: true,
-        ),
-        body: Consumer<SaveData>(builder: (context, data, child) {
-          return data.transactions.isNotEmpty
-              ? Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      height: 40,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          sortDropdown(data),
-                          const SizedBox(width: 50),
-                          filterDropdown()
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Expanded(child: TransactionsList(displayedTransactions)),
-                    createTransactionButton()
-                  ],
-                )
-              : createTransactionButton();
-        }));
+    return Scaffold(body: Consumer<SaveData>(builder: (context, data, child) {
+      return data.transactions.isNotEmpty
+          ? Column(
+              children: [
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 40,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      sortDropdown(data),
+                      const SizedBox(width: 50),
+                      filterDropdown()
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Expanded(child: TransactionsList(displayedTransactions)),
+                createTransactionButton()
+              ],
+            )
+          : createTransactionButton();
+    }));
   }
 
   Center createTransactionButton() {

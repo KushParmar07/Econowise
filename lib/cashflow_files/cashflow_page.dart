@@ -24,6 +24,11 @@ class _CashflowPageState extends State<CashflowPage> {
   String? tooltipText;
   Offset? tooltipPosition;
 
+  String? selectedCategoryName;
+  num? selectedCategoryValue;
+  num? categoryTotal; // Total for the selected category in the active period
+  Budget? selectedBudget;
+
   @override
   void initState() {
     super.initState();
@@ -35,11 +40,6 @@ class _CashflowPageState extends State<CashflowPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Overview"),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -96,7 +96,7 @@ class _CashflowPageState extends State<CashflowPage> {
                 final axisRange = calculateYAxisRange(transactions, budgets);
 
                 return Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 0, 16, 16),
+                  padding: const EdgeInsets.only(bottom: 16),
                   child: SfCartesianChart(
                     primaryXAxis: const CategoryAxis(),
                     primaryYAxis: NumericAxis(
@@ -114,10 +114,25 @@ class _CashflowPageState extends State<CashflowPage> {
                               .visible), // Allow labels to overflow and wrap
                     ),
                     series: chartSeries,
+                    legend: Legend(
+                      isVisible: true,
+                      position: LegendPosition.bottom,
+                      title: const LegendTitle(
+                        text: 'Legend',
+                        textStyle: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      backgroundColor:
+                          Colors.grey[100], // Light gray background
+                      borderWidth: 1, // Border width
+                      borderColor: Colors.grey[300], // Border color
+                    ),
                   ),
                 );
               },
             ),
+            infoSection()
           ],
         ),
       ),
@@ -160,6 +175,11 @@ class _CashflowPageState extends State<CashflowPage> {
     setState(() {
       isMonthlyView = !isMonthlyView;
       context.read<SaveData>().isMonthlyView = isMonthlyView;
+
+      selectedCategoryName = null;
+      selectedCategoryValue = null;
+      categoryTotal = null;
+      selectedBudget = null;
     });
   }
 
@@ -267,6 +287,42 @@ class _CashflowPageState extends State<CashflowPage> {
     return totalExpenses;
   }
 
+  num getTotalForCategoryInMonth(String categoryName, int month, int year) {
+    num total = 0;
+    for (var transaction in context.read<SaveData>().transactions) {
+      if (transaction.date != null &&
+          transaction.date!.month == month &&
+          transaction.date!.year == year) {
+        if ((transaction.spent &&
+                (transaction.budget?.goal == categoryName ||
+                    (categoryName == 'Other Expenses' &&
+                        !context.read<SaveData>().budgets.any(
+                            (b) => b.goal == transaction.budget?.goal)))) ||
+            (!transaction.spent && categoryName == 'Income')) {
+          total += transaction.spent ? -transaction.amount : transaction.amount;
+        }
+      }
+    }
+    return total;
+  }
+
+  num getTotalForCategoryInYear(String categoryName, int year) {
+    num total = 0;
+    for (var transaction in context.read<SaveData>().transactions) {
+      if (transaction.date != null && transaction.date!.year == year) {
+        if ((transaction.spent &&
+                (transaction.budget?.goal == categoryName ||
+                    (categoryName == 'Other Expenses' &&
+                        !context.read<SaveData>().budgets.any(
+                            (b) => b.goal == transaction.budget?.goal)))) ||
+            (!transaction.spent && categoryName == 'Income')) {
+          total += transaction.spent ? -transaction.amount : transaction.amount;
+        }
+      }
+    }
+    return total;
+  }
+
   (double, double, double) calculateYAxisRange(
       List<Transaction> transactions, List<Budget> budgets) {
     double range = 0;
@@ -299,7 +355,7 @@ class _CashflowPageState extends State<CashflowPage> {
                 ? (transaction.budget != null &&
                         budgets.any((b) => b.goal == transaction.budget!.goal)
                     ? transaction.budget!.goal
-                    : 'Other')
+                    : 'Other Expenses')
                 : 'Income';
             double transactionValue =
                 transaction.spent ? -transaction.amount : transaction.amount;
@@ -342,7 +398,7 @@ class _CashflowPageState extends State<CashflowPage> {
               ? (transaction.budget != null &&
                       budgets.any((b) => b.goal == transaction.budget!.goal)
                   ? transaction.budget!.goal
-                  : 'Other')
+                  : 'Other Expenses')
               : 'Income';
           double transactionValue =
               transaction.spent ? -transaction.amount : transaction.amount;
@@ -434,7 +490,7 @@ class _CashflowPageState extends State<CashflowPage> {
       List<DateTimeRange> weeksOfMonth =
           getWeeksOfMonth(activeYear, activeMonth);
 
-      // 2. Initialize weeklyBudgetExpenses with all weeks and budgets (or 'Other')
+      // 2. Initialize weeklyBudgetExpenses with all weeks and budgets (or 'Other Expenses')
       Map<DateTimeRange, Map<String, num>> weeklyBudgetExpenses = {};
       for (var weekRange in weeksOfMonth) {
         weeklyBudgetExpenses[weekRange] = {};
@@ -443,8 +499,8 @@ class _CashflowPageState extends State<CashflowPage> {
             weeklyBudgetExpenses[weekRange]![budget.goal] = 0;
           }
         }
-        // Always initialize 'Other' even if there are other budgets
-        weeklyBudgetExpenses[weekRange]!['Other'] = 0;
+        // Always initialize 'Other Expenses' even if there are other budgets
+        weeklyBudgetExpenses[weekRange]!['Other Expenses'] = 0;
         weeklyBudgetExpenses[weekRange]!['Income'] = 0;
       }
 
@@ -467,7 +523,7 @@ class _CashflowPageState extends State<CashflowPage> {
           if (transaction.spent) {
             categoryName = budgets.any((b) => b.goal == transaction.budget.goal)
                 ? transaction.budget.goal
-                : 'Other';
+                : 'Other Expenses';
             transactionValue = -transaction.amount; // Expenses are negative
           } else {
             categoryName = 'Income';
@@ -502,12 +558,12 @@ class _CashflowPageState extends State<CashflowPage> {
       // 5. Create ChartSeries
       List<ChartSeries<ChartData, String>> chartSeries = [];
 
-      // Handle the case where there are no budgets at all OR there are 'Other' expenses
+      // Handle the case where there are no budgets at all OR there are 'Other Expenses' expenses
       if ((budgets.isEmpty && weeklyBudgetExpenses.isNotEmpty) ||
           weeklyBudgetExpenses.values
-              .any((expenses) => expenses.containsKey('Other'))) {
+              .any((expenses) => expenses.containsKey('Other Expenses'))) {
         chartSeries.add(createSeriesForCategory(
-          'Other',
+          'Other Expenses',
           Colors.red,
           weeksOfMonth,
           weeklyBudgetExpenses,
@@ -531,13 +587,24 @@ class _CashflowPageState extends State<CashflowPage> {
         ));
       }
 
-      return chartSeries;
+      List<ChartSeries<ChartData, String>> filteredChartSeries = [];
+      for (var series in chartSeries) {
+        num totalValue = 0;
+        for (var data in series.dataSource as List<ChartData>) {
+          totalValue += data.y;
+        }
+        if (totalValue != 0) {
+          filteredChartSeries.add(series);
+        }
+      }
+
+      return filteredChartSeries;
     } else {
       // Yearly view
       // 1. Get all months of the active year
       List<int> monthsOfYear = List.generate(12, (index) => index + 1);
 
-      // 2. Initialize monthlyBudgetExpenses with all months and budgets (or 'Other')
+      // 2. Initialize monthlyBudgetExpenses with all months and budgets (or 'Other Expenses')
       Map<int, Map<String, num>> monthlyBudgetExpenses = {};
       for (var month in monthsOfYear) {
         monthlyBudgetExpenses[month] = {};
@@ -546,8 +613,8 @@ class _CashflowPageState extends State<CashflowPage> {
             monthlyBudgetExpenses[month]![budget.goal] = 0;
           }
         }
-        // Always initialize 'Other' even if there are other budgets
-        monthlyBudgetExpenses[month]!['Other'] = 0;
+        // Always initialize 'Other Expenses' even if there are other budgets
+        monthlyBudgetExpenses[month]!['Other Expenses'] = 0;
         monthlyBudgetExpenses[month]!['Income'] = 0;
       }
 
@@ -562,7 +629,7 @@ class _CashflowPageState extends State<CashflowPage> {
           if (transaction.spent) {
             categoryName = budgets.any((b) => b.goal == transaction.budget.goal)
                 ? transaction.budget.goal
-                : 'Other';
+                : 'Other Expenses';
             transactionValue = -transaction.amount; // Expenses are negative
           } else {
             categoryName = 'Income';
@@ -596,12 +663,12 @@ class _CashflowPageState extends State<CashflowPage> {
       // 5. Create ChartSeries
       List<ChartSeries<ChartData, String>> chartSeries = [];
 
-      // Handle the case where there are no budgets at all OR there are 'Other' expenses
+      // Handle the case where there are no budgets at all OR there are 'Other Expenses' expenses
       if ((budgets.isEmpty && monthlyBudgetExpenses.isNotEmpty) ||
           monthlyBudgetExpenses.values
-              .any((expenses) => expenses.containsKey('Other'))) {
+              .any((expenses) => expenses.containsKey('Other Expenses'))) {
         chartSeries.add(createSeriesForCategory(
-          'Other',
+          'Other Expenses',
           Colors.red,
           monthsOfYear,
           monthlyBudgetExpenses,
@@ -624,8 +691,18 @@ class _CashflowPageState extends State<CashflowPage> {
           monthlyBudgetExpenses,
         ));
       }
+      List<ChartSeries<ChartData, String>> filteredChartSeries = [];
+      for (var series in chartSeries) {
+        num totalValue = 0;
+        for (var data in series.dataSource as List<ChartData>) {
+          totalValue += data.y;
+        }
+        if (totalValue != 0) {
+          filteredChartSeries.add(series);
+        }
+      }
 
-      return chartSeries;
+      return filteredChartSeries;
     }
   }
 
@@ -645,12 +722,37 @@ class _CashflowPageState extends State<CashflowPage> {
     }
 
     return StackedColumnSeries<ChartData, String>(
+      legendIconType: LegendIconType.rectangle,
       dataSource: chartData,
       xValueMapper: (ChartData data, _) => data.x,
       yValueMapper: (ChartData data, _) => data.y,
       name: categoryName,
       color: color,
       animationDuration: 0,
+      onPointTap: (ChartPointDetails args) {
+        if (args.pointIndex != null) {
+          final ChartData data = chartData[args.pointIndex!];
+
+          // Find the total for the selected category
+          num categoryTotal = isMonthlyView
+              ? getTotalForCategoryInMonth(
+                  categoryName, activeMonth, activeYear)
+              : getTotalForCategoryInYear(categoryName, activeYear);
+
+          // Find the budget if the category matches a budget goal
+          Budget? budget = context
+              .read<SaveData>()
+              .budgets
+              .firstWhereOrNull((b) => b.goal == categoryName);
+
+          setState(() {
+            selectedCategoryName = categoryName;
+            selectedCategoryValue = data.y;
+            this.categoryTotal = categoryTotal;
+            selectedBudget = budget;
+          });
+        }
+      },
     );
   }
 
@@ -669,12 +771,112 @@ class _CashflowPageState extends State<CashflowPage> {
     }
 
     return StackedColumnSeries<ChartData, String>(
+      legendIconType: LegendIconType.rectangle,
       dataSource: chartData,
       xValueMapper: (ChartData data, _) => data.x,
       yValueMapper: (ChartData data, _) => data.y,
       name: budget.goal,
       color: budget.color,
       animationDuration: 0,
+      onPointTap: (ChartPointDetails args) {
+        if (args.pointIndex != null) {
+          final ChartData data = chartData[args.pointIndex!];
+
+          // Find the total for the selected budget
+          num categoryTotal = isMonthlyView
+              ? getTotalForCategoryInMonth(budget.goal, activeMonth, activeYear)
+              : getTotalForCategoryInYear(budget.goal, activeYear);
+
+          setState(() {
+            selectedCategoryName = budget.goal;
+            selectedCategoryValue = data.y;
+            this.categoryTotal = categoryTotal;
+            selectedBudget = budget;
+          });
+        }
+      },
+    );
+  }
+
+  Widget infoSection() {
+    return Column(
+      children: [
+        const Center(
+            child: Text(
+          "Info",
+          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        )),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8.0, 0, 8, 16),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 200),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: selectedCategoryName != null
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            selectedCategoryName!,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Amount: \$${selectedCategoryValue!.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: selectedCategoryValue! >= 0
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Total "${selectedCategoryName!}" for ${isMonthlyView ? 'Month' : 'Year'}: \$${categoryTotal!.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        if (selectedBudget != null) ...[
+                          const SizedBox(height: 15),
+                          LinearProgressIndicator(
+                            value: selectedBudget!.totalUsed /
+                                selectedBudget!.budgetAmount,
+                            backgroundColor: Colors.grey[200],
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                selectedBudget!.color),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'Used: \$${selectedBudget!.totalUsed.toStringAsFixed(2)} / \$${selectedBudget!.budgetAmount.toStringAsFixed(2)}',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          Text(
+                            'Remaining: \$${(selectedBudget!.budgetAmount - selectedBudget!.totalUsed).toStringAsFixed(2)}',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ],
+                    )
+                  : const Center(
+                      child: Text(
+                        'Click A Bar To Display Info',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

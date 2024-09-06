@@ -140,11 +140,6 @@ class _BudgetPageState extends State<BudgetPage> {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Budget Page"),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        centerTitle: true,
-      ),
       body: budgets.isNotEmpty
           ? Column(
               mainAxisSize: MainAxisSize.min,

@@ -34,6 +34,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
         MaterialPageRoute(builder: (context) => const TransactionScreen()));
   }
 
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

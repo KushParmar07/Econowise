@@ -26,7 +26,7 @@ class _BudgetPageState extends State<BudgetPage> {
     super.initState();
     budgets = context.read<SaveData>().budgets;
     if (budgets.isNotEmpty) {
-      selectedBudget = budgets[0];
+      selectedBudget = budgets[budgets.length - 1];
       selectedBudgetDetails =
           budgets.firstWhere((budget) => budget == selectedBudget);
       startDate = selectedBudgetDetails.startDate!;
@@ -222,11 +222,13 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   SizedBox budgetListDisplay() {
+    List<Budget> reversedBudgets = List.from(budgets.reversed);
+
     return SizedBox(
       height: 200,
       child: ListView.builder(
         scrollDirection: Axis.horizontal, // Scroll horizontally
-        itemCount: budgets.length + 1, // Include the "Add" button
+        itemCount: reversedBudgets.length + 1, // Include the "Add" button
         itemBuilder: (context, index) {
           if (index == 0) {
             return Padding(
@@ -251,7 +253,7 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
             );
           } else {
-            final budget = budgets[index - 1];
+            final budget = reversedBudgets[index - 1];
             final isSelected = budget == selectedBudget;
             return Padding(
               padding: const EdgeInsets.all(8.0),

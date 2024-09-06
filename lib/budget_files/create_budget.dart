@@ -1,4 +1,5 @@
 import 'package:econowise/save_data.dart';
+import 'package:econowise/transaction_files/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'budget.dart';
@@ -28,6 +29,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   Color _selectedColor = const Color.fromARGB(255, 255, 131, 90);
 
   late List<Budget> currentBudgets = [];
+  List<Transaction> affectedTransactions = [];
 
   // List to hold common icons (you can customize this list)
   final List<IconData> _iconOptions = [
@@ -101,6 +103,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
       _endSelectedDate = widget.currentBudget!.endDate;
       _selectedIcon = widget.currentBudget!.icon;
       _selectedColor = widget.currentBudget!.color;
+
+      for (var transaction in context.read<SaveData>().transactions) {
+        if (transaction.budget == widget.currentBudget) {
+          affectedTransactions.add(transaction);
+        }
+      }
     }
   }
 
@@ -112,13 +120,17 @@ class _BudgetScreenState extends State<BudgetScreen> {
             Budget("Placeholder", 100, DateTime.now(), DateTime.now(),
                 Icons.abc, Colors.blue));
       }
-      context.read<SaveData>().addBudget(Budget(
+      Budget newBudget = Budget(
           _budgetTitleController.text,
           double.parse(_budgetAmountController.text),
           _startSelectedDate,
           _endSelectedDate,
           _selectedIcon,
-          _selectedColor));
+          _selectedColor);
+      context.read<SaveData>().addBudget(newBudget);
+      for (var transaction in affectedTransactions) {
+        transaction.budget = newBudget;
+      }
 
       context.read<SaveData>().updateTransactions(context
           .read<SaveData>()

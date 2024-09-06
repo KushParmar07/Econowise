@@ -57,16 +57,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
     }
 
     if (widget.currentTransaction == null) {
-      if (context.read<SaveData>().budgets.isNotEmpty) {
-        selectedBudget = context.read<SaveData>().budgets[0];
+      if (spent) {
+        selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+            Icons.money_off, Colors.red);
       } else {
-        if (spent) {
-          selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-              Icons.money_off, Colors.red);
-        } else {
-          selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-              Icons.attach_money, Colors.green);
-        }
+        selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
+            Icons.attach_money, Colors.green);
       }
     }
   }

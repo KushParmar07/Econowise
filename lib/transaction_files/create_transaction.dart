@@ -59,10 +59,10 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (widget.currentTransaction == null) {
       if (spent) {
         selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-            Icons.money_off, Colors.red);
+            Icons.money_off, Colors.red, 0);
       } else {
         selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-            Icons.attach_money, Colors.green);
+            Icons.attach_money, Colors.green, 0);
       }
     }
   }
@@ -83,16 +83,17 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     DateTime.now(),
                     DateTime.now(),
                     Icons.attach_money,
-                    const Color.fromARGB(255, 128, 147, 241))));
+                    const Color.fromARGB(255, 128, 147, 241),
+                    0)));
       }
       if (spent) {
         if (context.read<SaveData>().budgets.isEmpty) {
           selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-              Icons.money_off, Colors.red);
+              Icons.money_off, Colors.red, 0);
         }
       } else {
         selectedBudget = Budget("sample", 0, DateTime.now(), DateTime.now(),
-            Icons.attach_money, Colors.green);
+            Icons.attach_money, Colors.green, 0);
       }
       context.read<SaveData>().addTransaction(Transaction(
           _transactionTitleController.text,
@@ -105,16 +106,18 @@ class _TransactionScreenState extends State<TransactionScreen> {
         for (var budget in context.read<SaveData>().budgets) {
           context.read<SaveData>().updateTransactions(budget);
 
-          if (budget.budgetAmount * 0.9 <= budget.totalUsed && spent) {
-            Fluttertoast.showToast(
-                msg: budget.totalUsed < budget.budgetAmount
-                    ? 'WARNING: "${budget.goal}" Is Almost Used Up'
-                    : 'WARNING: "${budget.goal}" Has Been Used Up',
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.TOP,
-                backgroundColor: budget.color,
-                textColor: Colors.white,
-                fontSize: 20);
+          if (budget.warningAmount > 0) {
+            if (budget.totalUsed >= budget.warningAmount && spent) {
+              Fluttertoast.showToast(
+                  msg: budget.totalUsed < budget.budgetAmount
+                      ? 'WARNING: "${budget.goal}" Is Almost Used Up'
+                      : 'WARNING: "${budget.goal}" Has Been Used Up',
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.TOP,
+                  backgroundColor: budget.color,
+                  textColor: Colors.white,
+                  fontSize: 20);
+            }
           }
         }
       }
@@ -313,7 +316,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 setState(() {
                   spent = value;
                   selectedBudget = Budget("sample", 0, DateTime.now(),
-                      DateTime.now(), Icons.money_off, Colors.red);
+                      DateTime.now(), Icons.money_off, Colors.red, 0);
                 });
               }
             }),

@@ -39,14 +39,16 @@ class _BudgetPageState extends State<BudgetPage> {
           DateTime.now(),
           DateTime.now(),
           Icons.accessibility_rounded,
-          const Color.fromARGB(255, 179, 136, 235));
+          const Color.fromARGB(255, 179, 136, 235),
+          0);
       selectedBudgetDetails = Budget(
           "Sample Budget",
           100,
           DateTime.now(),
           DateTime.now(),
           Icons.accessibility_rounded,
-          const Color.fromARGB(255, 179, 136, 235));
+          const Color.fromARGB(255, 179, 136, 235),
+          0);
       startDate = DateTime.now();
       endDate = DateTime.now();
     }
@@ -68,16 +70,18 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   void warning(Budget budget) {
-    if (budget.budgetAmount * 0.85 < budget.totalUsed) {
-      Fluttertoast.showToast(
-          msg: budget.totalUsed < budget.budgetAmount
-              ? 'WARNING: "${budget.goal}" Is Almost Used Up'
-              : 'WARNING: "${budget.goal}" Has Been Used Up',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          backgroundColor: budget.color,
-          textColor: Colors.white,
-          fontSize: 20);
+    if (budget.warningAmount > 0) {
+      if (budget.totalUsed >= budget.warningAmount) {
+        Fluttertoast.showToast(
+            msg: budget.totalUsed < budget.budgetAmount
+                ? 'WARNING: "${budget.goal}" Is Almost Used Up'
+                : 'WARNING: "${budget.goal}" Has Been Used Up',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.TOP,
+            backgroundColor: budget.color,
+            textColor: Colors.white,
+            fontSize: 20);
+      }
     }
   }
 

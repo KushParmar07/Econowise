@@ -51,6 +51,7 @@ dependencies:
   fast_charts: ^0.2.0
 
   intl: any
+  collection: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

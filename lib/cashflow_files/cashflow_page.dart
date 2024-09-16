@@ -294,10 +294,12 @@ class _CashflowPageState extends State<CashflowPage> {
           transaction.date!.month == month &&
           transaction.date!.year == year) {
         if ((transaction.spent &&
-                (transaction.budget?.goal == categoryName ||
+                (transaction.budget.goal == categoryName ||
                     (categoryName == 'Other Expenses' &&
-                        !context.read<SaveData>().budgets.any(
-                            (b) => b.goal == transaction.budget?.goal)))) ||
+                        !context
+                            .read<SaveData>()
+                            .budgets
+                            .any((b) => b.goal == transaction.budget.goal)))) ||
             (!transaction.spent && categoryName == 'Income')) {
           total += transaction.spent ? -transaction.amount : transaction.amount;
         }
@@ -311,10 +313,12 @@ class _CashflowPageState extends State<CashflowPage> {
     for (var transaction in context.read<SaveData>().transactions) {
       if (transaction.date != null && transaction.date!.year == year) {
         if ((transaction.spent &&
-                (transaction.budget?.goal == categoryName ||
+                (transaction.budget.goal == categoryName ||
                     (categoryName == 'Other Expenses' &&
-                        !context.read<SaveData>().budgets.any(
-                            (b) => b.goal == transaction.budget?.goal)))) ||
+                        !context
+                            .read<SaveData>()
+                            .budgets
+                            .any((b) => b.goal == transaction.budget.goal)))) ||
             (!transaction.spent && categoryName == 'Income')) {
           total += transaction.spent ? -transaction.amount : transaction.amount;
         }
@@ -352,9 +356,8 @@ class _CashflowPageState extends State<CashflowPage> {
 
           if (weekRange != null) {
             String categoryName = transaction.spent
-                ? (transaction.budget != null &&
-                        budgets.any((b) => b.goal == transaction.budget!.goal)
-                    ? transaction.budget!.goal
+                ? (budgets.any((b) => b.goal == transaction.budget.goal)
+                    ? transaction.budget.goal
                     : 'Other Expenses')
                 : 'Income';
             double transactionValue =
@@ -395,9 +398,8 @@ class _CashflowPageState extends State<CashflowPage> {
         if (transaction.date != null && transaction.date!.year == activeYear) {
           int month = transaction.date!.month;
           String categoryName = transaction.spent
-              ? (transaction.budget != null &&
-                      budgets.any((b) => b.goal == transaction.budget!.goal)
-                  ? transaction.budget!.goal
+              ? (budgets.any((b) => b.goal == transaction.budget.goal)
+                  ? transaction.budget.goal
                   : 'Other Expenses')
               : 'Income';
           double transactionValue =

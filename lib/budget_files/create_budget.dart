@@ -22,6 +22,8 @@ class BudgetScreen extends StatefulWidget {
 class _BudgetScreenState extends State<BudgetScreen> {
   final TextEditingController _budgetTitleController = TextEditingController();
   final TextEditingController _budgetAmountController = TextEditingController();
+  final TextEditingController _budgetWarningAmountController =
+      TextEditingController();
   IconData _selectedIcon = Icons.shopping_cart;
   String budgetDescriptionText = 'How much would you like to spend on ';
   DateTime? _startSelectedDate = DateTime.now();
@@ -99,6 +101,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
       _budgetTitleController.text = widget.currentBudget!.goal;
       _budgetAmountController.text =
           widget.currentBudget!.budgetAmount.toString();
+      _budgetWarningAmountController.text =
+          widget.currentBudget!.warningAmount.toString();
       _startSelectedDate = widget.currentBudget!.startDate;
       _endSelectedDate = widget.currentBudget!.endDate;
       _selectedIcon = widget.currentBudget!.icon;
@@ -109,16 +113,19 @@ class _BudgetScreenState extends State<BudgetScreen> {
           affectedTransactions.add(transaction);
         }
       }
+    } else {
+      _budgetWarningAmountController.text = 0.00.toString();
     }
   }
 
   void submit() async {
     if (_budgetTitleController.text != "" &&
-        _budgetAmountController.text != "") {
+        _budgetAmountController.text != "" &&
+        _budgetWarningAmountController.text != "") {
       if (widget.currentBudget != null) {
         context.read<SaveData>().deleteBudget(widget.currentBudget ??
             Budget("Placeholder", 100, DateTime.now(), DateTime.now(),
-                Icons.abc, Colors.blue));
+                Icons.abc, Colors.blue, 0));
       }
       Budget newBudget = Budget(
           _budgetTitleController.text,
@@ -126,7 +133,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
           _startSelectedDate,
           _endSelectedDate,
           _selectedIcon,
-          _selectedColor);
+          _selectedColor,
+          double.parse(_budgetWarningAmountController.text));
       context.read<SaveData>().addBudget(newBudget);
       for (var transaction in affectedTransactions) {
         transaction.budget = newBudget;
@@ -228,7 +236,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   child: Column(
                     children: <Widget>[
                       const Text(
-                        'Set amount budget',
+                        'Set budget amount',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 5),
@@ -238,6 +246,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       ),
                       const SizedBox(height: 10),
                       budgetAmountSelector(),
+                      const SizedBox(height: 20),
+                      const Text('Set warning amount (leave 0 for no warning)',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      budgetWarningSelector(),
 
                       const SizedBox(height: 20),
                       const Text(
@@ -402,6 +415,28 @@ class _BudgetScreenState extends State<BudgetScreen> {
           filled: true,
           fillColor: Colors.grey[100]!,
           suffixText: 'Budget amount',
+          suffixStyle: const TextStyle(color: Colors.grey),
+        ),
+        style: const TextStyle(fontSize: 24),
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+
+  SizedBox budgetWarningSelector() {
+    return SizedBox(
+      height: 60,
+      child: TextField(
+        controller: _budgetWarningAmountController,
+        decoration: InputDecoration(
+          hintText: '\$0.00',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30.0),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.grey[100]!,
+          suffixText: 'Budget warning amount',
           suffixStyle: const TextStyle(color: Colors.grey),
         ),
         style: const TextStyle(fontSize: 24),

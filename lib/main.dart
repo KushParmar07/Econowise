@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const MenuSelecter(
-        index: 0,
+        index: 1,
       ),
     );
   }

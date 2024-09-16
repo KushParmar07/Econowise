@@ -31,6 +31,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
         MaterialPageRoute(builder: (context) => const TransactionScreen()));
   }
 
+  @override
   void initState() {
     super.initState();
   }
@@ -113,7 +114,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   DropdownButton<String> filterDropdown() {
     return DropdownButton(
         value: filterOptions,
-        items: <String>['All', 'Spent', 'Not Spent'].map((String value) {
+        items: <String>['All', 'Expense', 'Income'].map((String value) {
           return DropdownMenuItem<String>(
             value: value,
             child: Text(value),
@@ -168,11 +169,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
       case 'All':
         displayedTransactions = sortedTransactions;
         break;
-      case 'Spent':
+      case 'Expense':
         displayedTransactions =
             sortedTransactions.where((tx) => tx.spent).toList();
         break;
-      case 'Not Spent':
+      case 'Income':
         displayedTransactions =
             sortedTransactions.where((tx) => !tx.spent).toList();
         break;

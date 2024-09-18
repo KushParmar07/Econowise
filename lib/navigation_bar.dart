@@ -1,4 +1,5 @@
 import 'package:econowise/save_data.dart';
+import 'package:econowise/settings_files/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'transaction_files/transactions_page.dart';
@@ -39,7 +40,10 @@ class _MenuSelecterState extends State<MenuSelecter> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => SettingsPage()));
+              },
               icon: const Icon(
                 Icons.settings,
                 size: 40,

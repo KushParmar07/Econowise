@@ -109,6 +109,7 @@ class SaveData extends ChangeNotifier {
   void deleteTransaction(transaction.Transaction transaction) {
     transactions.remove(transaction);
     notifyListeners();
+    saveData();
   }
 
   void deleteBudget(Budget budget) {

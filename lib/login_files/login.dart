@@ -1,10 +1,12 @@
 import 'package:econowise/navigation_bar.dart';
+import 'package:econowise/save_data.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'package:econowise/firebase_options.dart'; // Import your Firebase configuration
+import 'package:econowise/firebase_options.dart';
+import 'package:provider/provider.dart'; // Import your Firebase configuration
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -52,6 +54,7 @@ class _LoginPageState extends State<LoginPage> {
           onPressed: () async {
             UserCredential? userCredential = await signInWithGoogle();
             if (userCredential != null) {
+              context.read<SaveData>().loadData();
               Navigator.of(context).pushReplacement(MaterialPageRoute(
                   builder: (context) => MenuSelecter(index: 1)));
               print("Signed in");

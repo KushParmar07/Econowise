@@ -120,6 +120,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             }
           }
         }
+        context.read<SaveData>().saveData();
       }
       back();
     } else {

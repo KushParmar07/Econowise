@@ -143,6 +143,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       context.read<SaveData>().updateTransactions(context
           .read<SaveData>()
           .budgets[context.read<SaveData>().budgets.length - 1]);
+      context.read<SaveData>().saveData();
       back();
     } else {
       Fluttertoast.showToast(

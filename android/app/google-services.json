@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "901485799632",
+    "project_id": "econowise-9a3b6",
+    "storage_bucket": "econowise-9a3b6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901485799632:android:e8bca806cba130af03d6d5",
+        "android_client_info": {
+          "package_name": "com.example.econowise"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901485799632-1coo7i7n0ldcrk3ai7hjclbfh30428s3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.econowise",
+            "certificate_hash": "de5f7300622f2cb92a83c19c01df7a6721af9390"
+          }
+        },
+        {
+          "client_id": "901485799632-qav2di3lal90e0s30oav86dc0jrl5f7f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6ZmGeP7e0EYlm859CDkI1Vj_3YQtNPOw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901485799632-8uigena8nbccrfo7rhfqaj3g6c1bp4k5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "901485799632-ua7424648lfqkbc09qkuaoicnfn42occ.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.econowise"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -37,7 +37,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
       appBar: AppBar(
         title: Text(appBarTitle),
         centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: context.read<SaveData>().primaryColor,
         actions: [
           IconButton(
               onPressed: () {
@@ -52,6 +52,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
       ),
       body: body[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        fixedColor: context.read<SaveData>().secondaryColor,
         currentIndex: _currentIndex,
         onTap: (int newIndex) {
           setState(() {

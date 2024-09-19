@@ -120,8 +120,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
             }
           }
         }
-        context.read<SaveData>().saveData();
       }
+      context.read<SaveData>().saveData();
       back();
     } else {
       Fluttertoast.showToast(
@@ -153,13 +153,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
           leading:
               IconButton(onPressed: back, icon: const Icon(Icons.arrow_back)),
           flexibleSpace: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
                 gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                  Color.fromARGB(255, 255, 131, 90),
-                  Color.fromARGB(255, 229, 176, 158)
+                  context.read<SaveData>().primaryColor,
+                  context.read<SaveData>().primaryColor.withAlpha(110)
                 ])),
           ),
           centerTitle: true,
@@ -230,12 +230,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
           ),
           child: Ink(
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
-                  Color.fromARGB(255, 255, 131, 90),
-                  Color.fromARGB(255, 128, 147, 241)
+                  context.read<SaveData>().primaryColor,
+                  context.read<SaveData>().secondaryColor
                 ],
               ),
               borderRadius: BorderRadius.circular(30.0),
@@ -365,14 +365,14 @@ class _TransactionScreenState extends State<TransactionScreen> {
   Container topBackground() {
     return Container(
       height: 100, // Adjust height as needed
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(100),
             bottomRight: Radius.circular(100)),
         gradient: LinearGradient(
           colors: [
-            Color.fromARGB(255, 255, 131, 90),
-            Color.fromARGB(255, 229, 176, 158)
+            context.read<SaveData>().primaryColor,
+            context.read<SaveData>().primaryColor.withAlpha(110)
           ], // Orange shades
         ),
       ),

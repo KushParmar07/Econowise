@@ -14,6 +14,9 @@ class SaveData extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  Color primaryColor = const Color.fromARGB(255, 255, 131, 90);
+  Color secondaryColor = const Color.fromARGB(255, 128, 147, 241);
+
   // Load data from Firestore when the user logs in
   Future<void> loadData() async {
     try {
@@ -157,6 +160,16 @@ class SaveData extends ChangeNotifier {
 
   set isMonthlyView(bool isMonthly) {
     _isMonthlyView = isMonthly;
+    notifyListeners();
+  }
+
+  void primaryColourSet(Color colour) {
+    primaryColor = colour;
+    notifyListeners();
+  }
+
+  void secondaryColourSet(Color colour) {
+    secondaryColor = colour;
     notifyListeners();
   }
 }

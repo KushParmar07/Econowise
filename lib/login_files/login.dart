@@ -9,7 +9,7 @@ import 'package:econowise/firebase_options.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -56,10 +56,10 @@ class _LoginPageState extends State<LoginPage> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               // Show a loading indicator while signing in
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
               // Handle sign-in errors
-              return Text('Error signing in');
+              return const Text('Error signing in');
             } else if (snapshot.hasData) {
               // Sign-in successful, load data and then navigate
               return FutureBuilder(
@@ -69,15 +69,15 @@ class _LoginPageState extends State<LoginPage> {
                 builder: (context, dataSnapshot) {
                   if (dataSnapshot.connectionState == ConnectionState.waiting) {
                     // Show a loading indicator while data is being loaded
-                    return CircularProgressIndicator();
+                    return const CircularProgressIndicator();
                   } else if (dataSnapshot.hasError) {
                     // Handle data loading errors
-                    return Text('Error loading data');
+                    return const Text('Error loading data');
                   } else {
                     // Data is loaded, navigate to the next page
-                    Future.delayed(Duration(milliseconds: 300), () {
+                    Future.delayed(const Duration(milliseconds: 300), () {
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => MenuSelecter(index: 1)));
+                          builder: (context) => const MenuSelecter(index: 1)));
                     });
                     return Container(); // Placeholder while navigating
                   }

@@ -359,9 +359,8 @@ class _CashflowPageState extends State<CashflowPage> {
 
           if (weekRange != null) {
             String categoryName = transaction.spent
-                ? (transaction.budget != null &&
-                        budgets.any((b) => b.goal == transaction.budget!.goal)
-                    ? transaction.budget!.goal
+                ? (budgets.any((b) => b.goal == transaction.budget.goal)
+                    ? transaction.budget.goal
                     : 'Other Expenses')
                 : 'Income';
             double transactionValue =
@@ -387,7 +386,7 @@ class _CashflowPageState extends State<CashflowPage> {
 
         for (var categoryTotal in weeklyCategoryTotals[week]?.values ?? []) {
           categoryTotal = categoryTotal as num;
-          if (categoryTotal! > 0) {
+          if (categoryTotal > 0) {
             weekPositiveTotal += categoryTotal;
           } else {
             weekNegativeTotal += categoryTotal.abs();
@@ -414,9 +413,8 @@ class _CashflowPageState extends State<CashflowPage> {
         if (transaction.date != null && transaction.date!.year == activeYear) {
           int month = transaction.date!.month;
           String categoryName = transaction.spent
-              ? (transaction.budget != null &&
-                      budgets.any((b) => b.goal == transaction.budget!.goal)
-                  ? transaction.budget!.goal
+              ? (budgets.any((b) => b.goal == transaction.budget.goal)
+                  ? transaction.budget.goal
                   : 'Other Expenses')
               : 'Income';
           double transactionValue =
@@ -437,7 +435,7 @@ class _CashflowPageState extends State<CashflowPage> {
 
         for (var categoryTotal in monthlyCategoryTotals[month]?.values ?? []) {
           categoryTotal = categoryTotal as num;
-          if (categoryTotal! > 0) {
+          if (categoryTotal > 0) {
             // Income
             monthIncomeTotal += categoryTotal;
           } else {
@@ -741,16 +739,16 @@ class _CashflowPageState extends State<CashflowPage> {
             // Filter transactions for the selected category and the specific time period
             selectedCategoryTransactions = transactions.where((transaction) {
               if (isMonthlyView) {
-                return transaction.date!
-                        .isAfter((timePeriod as DateTimeRange).start) &&
-                    transaction.date!
-                        .isBefore((timePeriod as DateTimeRange).end) &&
+                return transaction.date!.isAfter((timePeriod as DateTimeRange)
+                        .start
+                        .subtract(const Duration(days: 1))) &&
+                    transaction.date!.isBefore(
+                        (timePeriod).end.add(const Duration(days: 1))) &&
                     ((transaction.spent &&
-                            (transaction.budget?.goal == categoryName ||
+                            (transaction.budget.goal == categoryName ||
                                 (categoryName == 'Other Expenses' &&
                                     !budgets.any((b) =>
-                                        b.goal ==
-                                        transaction.budget?.goal)))) ||
+                                        b.goal == transaction.budget.goal)))) ||
                         (!transaction.spent && categoryName == 'Income'));
               } else {
                 // Yearly view
@@ -758,11 +756,10 @@ class _CashflowPageState extends State<CashflowPage> {
                         (timePeriod as int) && // Filter by month in yearly view
                     transaction.date!.year == activeYear &&
                     ((transaction.spent &&
-                            (transaction.budget?.goal == categoryName ||
+                            (transaction.budget.goal == categoryName ||
                                 (categoryName == 'Other Expenses' &&
                                     !budgets.any((b) =>
-                                        b.goal ==
-                                        transaction.budget?.goal)))) ||
+                                        b.goal == transaction.budget.goal)))) ||
                         (!transaction.spent && categoryName == 'Income'));
               }
             }).toList();
@@ -820,17 +817,15 @@ class _CashflowPageState extends State<CashflowPage> {
                         .start
                         .subtract(const Duration(
                             days: 1))) && // Inclusive of start date
-                    transaction.date!.isBefore((timePeriod as DateTimeRange)
-                        .end
-                        .add(const Duration(
-                            days: 1))) && // Inclusive of end date
+                    transaction.date!.isBefore((timePeriod).end.add(
+                        const Duration(days: 1))) && // Inclusive of end date
                     (transaction.spent && transaction.budget == budget);
               } else {
                 // Yearly view
                 return transaction.date!.month == (timePeriod as int) &&
                     transaction.date!.year == activeYear &&
                     (transaction.spent &&
-                        transaction.budget?.goal == budget.goal);
+                        transaction.budget.goal == budget.goal);
               }
             }).toList();
           });

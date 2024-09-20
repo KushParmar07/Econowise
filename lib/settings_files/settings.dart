@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:econowise/login_files/login.dart';
 import 'package:econowise/navigation_bar.dart';
 import 'package:econowise/save_data.dart';
@@ -22,10 +24,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Settings'),
+          title: const Text('Settings'),
           leading: IconButton(
               onPressed: () {
-                Back(context);
+                back(context);
               },
               icon: const Icon(Icons.arrow_back)),
         ),
@@ -118,11 +120,11 @@ Future<void> logoutUser(BuildContext context) async {
     Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginPage()));
   } catch (e) {
-    print("Error during logout: $e");
+    //catch
   }
 }
 
-void Back(context) {
+void back(context) {
   Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const MenuSelecter(index: 1)));
 }

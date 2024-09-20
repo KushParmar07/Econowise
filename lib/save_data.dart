@@ -44,7 +44,7 @@ class SaveData extends ChangeNotifier {
         }
       }
     } catch (e) {
-      print("Error loading data from Firestore: $e");
+      //catch
     }
   }
 
@@ -58,10 +58,9 @@ class SaveData extends ChangeNotifier {
           'transactions':
               _transactions.map((transaction) => transaction.toJson()).toList(),
         });
-        print("Saving Data");
       }
     } catch (e) {
-      print("Error saving data to Firestore: $e");
+      //catch
     }
   }
 

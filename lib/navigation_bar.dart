@@ -42,7 +42,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
           IconButton(
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => SettingsPage()));
+                    MaterialPageRoute(builder: (context) => const SettingsPage()));
               },
               icon: const Icon(
                 Icons.settings,

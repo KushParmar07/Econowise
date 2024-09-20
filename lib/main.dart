@@ -30,6 +30,6 @@ class MyApp extends StatelessWidget {
               seedColor: context.read<SaveData>().primaryColor),
           useMaterial3: true,
         ),
-        home: LoginPage());
+        home: const LoginPage());
   }
 }

@@ -56,6 +56,7 @@ class _TransactionsListState extends State<TransactionsList> {
       for (var budget in context.read<SaveData>().budgets) {
         context.read<SaveData>().updateTransactions(budget);
       }
+      context.read<SaveData>().saveData();
     }
   }
 

@@ -61,7 +61,8 @@ class _CashflowPageState extends State<CashflowPage> {
                 getTotalExpenseChange(),
                 getTotalCashflowChange(),
                 isMonthlyView,
-                toggleView),
+                toggleView,
+                context),
             const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -912,7 +913,8 @@ Widget topBar(
     num totalExpensesChange,
     num totalCashFlowChange,
     bool isMonthlyView,
-    VoidCallback onToggleView) {
+    VoidCallback onToggleView,
+    BuildContext context) {
   return Column(
     children: [
       Padding(
@@ -931,9 +933,9 @@ Widget topBar(
                       ? DateFormat.MMMM()
                           .format(DateTime(activeYear, activeMonth, 1))
                       : activeYear.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 45,
-                    color: Color.fromARGB(255, 255, 131, 90),
+                    color: context.read<SaveData>().primaryColor,
                   ),
                 ),
                 if (isMonthlyView) // Show year only in monthly view

@@ -1,4 +1,7 @@
+import 'package:econowise/save_data.dart';
+import 'package:econowise/settings_files/settings.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'transaction_files/transactions_page.dart';
 import 'budget_files/budget_page_layout.dart';
 import 'cashflow_files/cashflow_page.dart';
@@ -34,10 +37,13 @@ class _MenuSelecterState extends State<MenuSelecter> {
       appBar: AppBar(
         title: Text(appBarTitle),
         centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: context.read<SaveData>().primaryColor.withAlpha(130),
         actions: [
           IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => SettingsPage()));
+              },
               icon: const Icon(
                 Icons.settings,
                 size: 40,
@@ -46,6 +52,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
       ),
       body: body[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        fixedColor: context.read<SaveData>().secondaryColor,
         currentIndex: _currentIndex,
         onTap: (int newIndex) {
           setState(() {

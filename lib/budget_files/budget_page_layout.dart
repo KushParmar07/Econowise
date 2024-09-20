@@ -339,12 +339,12 @@ class _BudgetPageState extends State<BudgetPage> {
             ),
             child: Ink(
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    Color.fromARGB(255, 255, 131, 90),
-                    Color.fromARGB(255, 128, 147, 241)
+                    context.read<SaveData>().primaryColor,
+                    context.read<SaveData>().secondaryColor
                   ],
                 ),
                 borderRadius: BorderRadius.circular(30.0),

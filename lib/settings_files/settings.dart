@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import 'package:econowise/transaction_files/transaction.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

@@ -29,6 +29,8 @@ class _CashflowPageState extends State<CashflowPage> {
   num? categoryTotal; // Total for the selected category in the active period
   Budget? selectedBudget;
 
+  List<Transaction> selectedCategoryTransactions = [];
+
   @override
   void initState() {
     super.initState();
@@ -337,7 +339,7 @@ class _CashflowPageState extends State<CashflowPage> {
       List<DateTimeRange> weeksOfMonth =
           getWeeksOfMonth(activeYear, activeMonth);
 
-      // 2. Initialize weeklyTotals with all weeks
+      // 2. Initialize weeklyTotals with all weeks (for net cash flow)
       Map<DateTimeRange, double> weeklyTotals = {};
       for (var week in weeksOfMonth) {
         weeklyTotals[week] = 0;
@@ -357,12 +359,16 @@ class _CashflowPageState extends State<CashflowPage> {
 
           if (weekRange != null) {
             String categoryName = transaction.spent
-                ? (budgets.any((b) => b.goal == transaction.budget.goal)
-                    ? transaction.budget.goal
+                ? (transaction.budget != null &&
+                        budgets.any((b) => b.goal == transaction.budget!.goal)
+                    ? transaction.budget!.goal
                     : 'Other Expenses')
                 : 'Income';
             double transactionValue =
                 transaction.spent ? -transaction.amount : transaction.amount;
+
+            weeklyTotals[weekRange] =
+                (weeklyTotals[weekRange] ?? 0) + transactionValue;
 
             // Accumulate values for each category within the week
             weeklyCategoryTotals[weekRange] ??= {};
@@ -373,14 +379,23 @@ class _CashflowPageState extends State<CashflowPage> {
         }
       }
 
-      // 4. Find the maximum absolute sum of values for each week
+      // 4. Find the maximum absolute sum of values for each week,
+      // considering both positive (income) and negative (expenses) sums separately
       for (var week in weeksOfMonth) {
-        double weekTotal = 0;
+        double weekPositiveTotal = 0; // Total income for the week
+        double weekNegativeTotal = 0; // Total expenses for the week
+
         for (var categoryTotal in weeklyCategoryTotals[week]?.values ?? []) {
           categoryTotal = categoryTotal as num;
-          weekTotal += categoryTotal; // Sum the category totals for the week
+          if (categoryTotal! > 0) {
+            weekPositiveTotal += categoryTotal;
+          } else {
+            weekNegativeTotal += categoryTotal.abs();
+          }
         }
-        range = max(range, weekTotal.abs()); // Update range based on the total
+
+        // Update range based on the maximum of income and expense totals for the week
+        range = max(range, max(weekPositiveTotal, weekNegativeTotal));
       }
     } else {
       // Yearly view
@@ -399,8 +414,9 @@ class _CashflowPageState extends State<CashflowPage> {
         if (transaction.date != null && transaction.date!.year == activeYear) {
           int month = transaction.date!.month;
           String categoryName = transaction.spent
-              ? (budgets.any((b) => b.goal == transaction.budget.goal)
-                  ? transaction.budget.goal
+              ? (transaction.budget != null &&
+                      budgets.any((b) => b.goal == transaction.budget!.goal)
+                  ? transaction.budget!.goal
                   : 'Other Expenses')
               : 'Income';
           double transactionValue =
@@ -420,8 +436,8 @@ class _CashflowPageState extends State<CashflowPage> {
         double monthExpenseTotal = 0;
 
         for (var categoryTotal in monthlyCategoryTotals[month]?.values ?? []) {
-          categoryTotal = categoryTotal as double;
-          if (categoryTotal > 0) {
+          categoryTotal = categoryTotal as num;
+          if (categoryTotal! > 0) {
             // Income
             monthIncomeTotal += categoryTotal;
           } else {
@@ -437,51 +453,31 @@ class _CashflowPageState extends State<CashflowPage> {
 
     // Handle the case where there are no transactions (after filtering)
     if (range == 0) {
-      range = 500; // Or any other suitable default value
+      range = 500;
     }
 
     // Ensure 0 is in the middle and scale accordingly
-    range = max(range, 500);
-
-    // Round up the range to the nearest 100 up to 1000
-    if (range <= 1000) {
-      range = (range / 100).ceil() * 100;
-    }
-    // Round up to the nearest 1000 between 1000 and 10000
-    else if (range > 1000 && range < 10000) {
-      range = ((range + 500) / 1000).ceil() * 1000;
-    }
-    // For values above 10000, round up to the nearest 5000 or multiple of 10000, etc.
-    else {
-      int powerOfTen = (range.abs().toString().length - 1).clamp(2, 5);
-      double intervalBase = pow(10, powerOfTen).toDouble();
-      if (range / intervalBase > 0.5) {
-        range = (range / intervalBase).ceil() * intervalBase;
-      } else {
-        range = (range / (intervalBase / 10)).ceil() * (intervalBase / 10);
-      }
-    }
-
-    // Calculate interval
-    double interval = 100 + ((range - 100) / 500).floor() * 100;
-    double minValue = -range; // Start with the negative of the calculated range
+    double minValue = -range;
     double maxValue = range;
 
     if (minValue > 0) {
-      minValue = 0; // If minValue is positive, set it to 0
+      minValue = -maxValue;
     } else if (maxValue < 0) {
-      maxValue = 0; // If maxValue is negative, set it to 0
+      maxValue = -minValue;
     }
 
     // Round up maxValue and round down minValue to the nearest interval mark
+    // Calculate interval based on the desired number of intervals
+    int desiredIntervals = 11;
+    double interval = (maxValue - minValue) / (desiredIntervals - 1);
+
+    // Round up the interval to the nearest 100
+    interval = (interval / 100).ceil() * 100;
+
     maxValue = (maxValue / interval).ceil() * interval;
     minValue = (minValue / interval).floor() * interval;
 
-    // Recalculate interval if necessary
-    interval = (maxValue - minValue) / 10;
-    interval = (interval / 100).ceil() * 100;
-
-    return (-range, range, interval);
+    return (minValue, maxValue, interval);
   }
 
   List<ChartSeries<ChartData, String>> getChartSeriesData() {
@@ -565,29 +561,21 @@ class _CashflowPageState extends State<CashflowPage> {
       if ((budgets.isEmpty && weeklyBudgetExpenses.isNotEmpty) ||
           weeklyBudgetExpenses.values
               .any((expenses) => expenses.containsKey('Other Expenses'))) {
-        chartSeries.add(createSeriesForCategory(
-          'Other Expenses',
-          Colors.red,
-          weeksOfMonth,
-          weeklyBudgetExpenses,
-        ));
+        chartSeries.add(createSeriesForCategory('Other Expenses', Colors.red,
+            weeksOfMonth, weeklyBudgetExpenses, transactions, budgets));
       }
 
       // Create series for each budget
       for (var budget in budgets) {
-        chartSeries.add(createSeriesForBudget(
-            budget, weeksOfMonth, weeklyBudgetExpenses, context));
+        chartSeries.add(createSeriesForBudget(budget, weeksOfMonth,
+            weeklyBudgetExpenses, context, transactions, budgets));
       }
 
       // Always include the 'Income' series if there's any income
       if (weeklyBudgetExpenses.values
           .any((expenses) => expenses.containsKey('Income'))) {
-        chartSeries.add(createSeriesForCategory(
-          'Income',
-          Colors.green,
-          weeksOfMonth,
-          weeklyBudgetExpenses,
-        ));
+        chartSeries.add(createSeriesForCategory('Income', Colors.green,
+            weeksOfMonth, weeklyBudgetExpenses, transactions, budgets));
       }
 
       List<ChartSeries<ChartData, String>> filteredChartSeries = [];
@@ -670,29 +658,21 @@ class _CashflowPageState extends State<CashflowPage> {
       if ((budgets.isEmpty && monthlyBudgetExpenses.isNotEmpty) ||
           monthlyBudgetExpenses.values
               .any((expenses) => expenses.containsKey('Other Expenses'))) {
-        chartSeries.add(createSeriesForCategory(
-          'Other Expenses',
-          Colors.red,
-          monthsOfYear,
-          monthlyBudgetExpenses,
-        ));
+        chartSeries.add(createSeriesForCategory('Other Expenses', Colors.red,
+            monthsOfYear, monthlyBudgetExpenses, transactions, budgets));
       }
 
       // Create series for each budget
       for (var budget in budgets) {
-        chartSeries.add(createSeriesForBudget(
-            budget, monthsOfYear, monthlyBudgetExpenses, context));
+        chartSeries.add(createSeriesForBudget(budget, monthsOfYear,
+            monthlyBudgetExpenses, context, transactions, budgets));
       }
 
       // Always include the 'Income' series if there's any income
       if (monthlyBudgetExpenses.values
           .any((expenses) => expenses.containsKey('Income'))) {
-        chartSeries.add(createSeriesForCategory(
-          'Income',
-          Colors.green,
-          monthsOfYear,
-          monthlyBudgetExpenses,
-        ));
+        chartSeries.add(createSeriesForCategory('Income', Colors.green,
+            monthsOfYear, monthlyBudgetExpenses, transactions, budgets));
       }
       List<ChartSeries<ChartData, String>> filteredChartSeries = [];
       for (var series in chartSeries) {
@@ -714,7 +694,9 @@ class _CashflowPageState extends State<CashflowPage> {
       String categoryName,
       Color color,
       List<dynamic> timePeriods, // Can be weeksOfMonth or monthsOfYear
-      Map<dynamic, Map<String, num>> budgetExpenses) {
+      Map<dynamic, Map<String, num>> budgetExpenses,
+      List<Transaction> transactions,
+      List<Budget> budgets) {
     List<ChartData> chartData = [];
     for (var timePeriod in timePeriods) {
       num valueForCategory = budgetExpenses[timePeriod]![categoryName] ?? 0;
@@ -735,6 +717,8 @@ class _CashflowPageState extends State<CashflowPage> {
       onPointTap: (ChartPointDetails args) {
         if (args.pointIndex != null) {
           final ChartData data = chartData[args.pointIndex!];
+          final dynamic timePeriod = timePeriods[
+              args.pointIndex!]; // Get the time period for the tapped bar
 
           // Find the total for the selected category
           num categoryTotal = isMonthlyView
@@ -753,6 +737,35 @@ class _CashflowPageState extends State<CashflowPage> {
             selectedCategoryValue = data.y;
             this.categoryTotal = categoryTotal;
             selectedBudget = budget;
+
+            // Filter transactions for the selected category and the specific time period
+            selectedCategoryTransactions = transactions.where((transaction) {
+              if (isMonthlyView) {
+                return transaction.date!
+                        .isAfter((timePeriod as DateTimeRange).start) &&
+                    transaction.date!
+                        .isBefore((timePeriod as DateTimeRange).end) &&
+                    ((transaction.spent &&
+                            (transaction.budget?.goal == categoryName ||
+                                (categoryName == 'Other Expenses' &&
+                                    !budgets.any((b) =>
+                                        b.goal ==
+                                        transaction.budget?.goal)))) ||
+                        (!transaction.spent && categoryName == 'Income'));
+              } else {
+                // Yearly view
+                return transaction.date!.month ==
+                        (timePeriod as int) && // Filter by month in yearly view
+                    transaction.date!.year == activeYear &&
+                    ((transaction.spent &&
+                            (transaction.budget?.goal == categoryName ||
+                                (categoryName == 'Other Expenses' &&
+                                    !budgets.any((b) =>
+                                        b.goal ==
+                                        transaction.budget?.goal)))) ||
+                        (!transaction.spent && categoryName == 'Income'));
+              }
+            }).toList();
           });
         }
       },
@@ -763,7 +776,9 @@ class _CashflowPageState extends State<CashflowPage> {
       Budget budget,
       List<dynamic> timePeriods, // Can be weeksOfMonth or monthsOfYear
       Map<dynamic, Map<String, num>> budgetExpenses,
-      BuildContext context) {
+      BuildContext context,
+      List<Transaction> transactions,
+      List<Budget> budgets) {
     List<ChartData> chartData = [];
     for (var timePeriod in timePeriods) {
       num expenseForBudget = budgetExpenses[timePeriod]![budget.goal] ?? 0;
@@ -784,6 +799,8 @@ class _CashflowPageState extends State<CashflowPage> {
       onPointTap: (ChartPointDetails args) {
         if (args.pointIndex != null) {
           final ChartData data = chartData[args.pointIndex!];
+          final dynamic timePeriod = timePeriods[
+              args.pointIndex!]; // Get the time period for the tapped bar
 
           // Find the total for the selected budget
           num categoryTotal = isMonthlyView
@@ -795,6 +812,27 @@ class _CashflowPageState extends State<CashflowPage> {
             selectedCategoryValue = data.y;
             this.categoryTotal = categoryTotal;
             selectedBudget = budget;
+
+            // Filter transactions for the selected budget and the specific time period
+            selectedCategoryTransactions = transactions.where((transaction) {
+              if (isMonthlyView) {
+                return transaction.date!.isAfter((timePeriod as DateTimeRange)
+                        .start
+                        .subtract(const Duration(
+                            days: 1))) && // Inclusive of start date
+                    transaction.date!.isBefore((timePeriod as DateTimeRange)
+                        .end
+                        .add(const Duration(
+                            days: 1))) && // Inclusive of end date
+                    (transaction.spent && transaction.budget == budget);
+              } else {
+                // Yearly view
+                return transaction.date!.month == (timePeriod as int) &&
+                    transaction.date!.year == activeYear &&
+                    (transaction.spent &&
+                        transaction.budget?.goal == budget.goal);
+              }
+            }).toList();
           });
         }
       },
@@ -802,6 +840,7 @@ class _CashflowPageState extends State<CashflowPage> {
   }
 
   Widget infoSection() {
+    selectedCategoryTransactions.sort((a, b) => a.date!.compareTo(b.date!));
     return Column(
       children: [
         const Center(
@@ -868,6 +907,28 @@ class _CashflowPageState extends State<CashflowPage> {
                             style: const TextStyle(fontSize: 14),
                           ),
                         ],
+                        // Add the ExpansionTile here
+                        ExpansionTile(
+                          title: const Text('Transactions'),
+                          children:
+                              selectedCategoryTransactions.map((transaction) {
+                            return ListTile(
+                              title: Text(transaction.title),
+                              subtitle: Text(DateFormat('MMM d, yyyy')
+                                  .format(transaction.date!)),
+                              // Add trailing widget to display the amount
+                              trailing: Text(
+                                '\$${transaction.amount.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: transaction.spent
+                                      ? Colors.red
+                                      : Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ],
                     )
                   : const Center(

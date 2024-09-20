@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:econowise/firebase_options.dart';
-import 'package:provider/provider.dart'; // Import your Firebase configuration
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
-      ); // Initialize Firebase
+      );
 
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
@@ -37,7 +37,6 @@ class _LoginPageState extends State<LoginPage> {
 
       return await _auth.signInWithCredential(credential);
     } catch (e) {
-      // Handle sign-in errors here
       print("Error signing in with Google: $e");
       return null;
     }
@@ -50,19 +49,50 @@ class _LoginPageState extends State<LoginPage> {
         title: const Text('Login'),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () async {
-            UserCredential? userCredential = await signInWithGoogle();
-            if (userCredential != null) {
-              context.read<SaveData>().loadData();
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => MenuSelecter(index: 1)));
-              print("Signed in");
+        child: FutureBuilder<UserCredential?>(
+          // Use FutureBuilder here
+          future:
+              signInWithGoogle(), // Trigger sign-in when the button is pressed
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show a loading indicator while signing in
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              // Handle sign-in errors
+              return Text('Error signing in');
+            } else if (snapshot.hasData) {
+              // Sign-in successful, load data and then navigate
+              return FutureBuilder(
+                future: context
+                    .read<SaveData>()
+                    .loadData(), // Load data after sign-in
+                builder: (context, dataSnapshot) {
+                  if (dataSnapshot.connectionState == ConnectionState.waiting) {
+                    // Show a loading indicator while data is being loaded
+                    return CircularProgressIndicator();
+                  } else if (dataSnapshot.hasError) {
+                    // Handle data loading errors
+                    return Text('Error loading data');
+                  } else {
+                    // Data is loaded, navigate to the next page
+                    Future.delayed(Duration(milliseconds: 300), () {
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (context) => MenuSelecter(index: 1)));
+                    });
+                    return Container(); // Placeholder while navigating
+                  }
+                },
+              );
             } else {
-              print("Didn't work");
+              // Initial state, show the sign-in button
+              return ElevatedButton(
+                onPressed: () {
+                  setState(() {});
+                },
+                child: const Text('Sign in with Google'),
+              );
             }
           },
-          child: const Text('Sign in with Google'),
         ),
       ),
     );

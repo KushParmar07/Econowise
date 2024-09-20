@@ -37,7 +37,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
       appBar: AppBar(
         title: Text(appBarTitle),
         centerTitle: true,
-        backgroundColor: context.read<SaveData>().primaryColor,
+        backgroundColor: context.read<SaveData>().primaryColor.withAlpha(130),
         actions: [
           IconButton(
               onPressed: () {

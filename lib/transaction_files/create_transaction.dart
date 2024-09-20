@@ -143,7 +143,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: const Color(0xFFF59E0B),
           title: const Text('Create Transaction',
               style: TextStyle(
                   color: Colors.white,
@@ -155,8 +154,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
           flexibleSpace: Container(
             decoration: BoxDecoration(
                 gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
                     colors: [
                   context.read<SaveData>().primaryColor,
                   context.read<SaveData>().primaryColor.withAlpha(110)

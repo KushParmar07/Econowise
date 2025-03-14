@@ -4,104 +4,194 @@ import 'package:flutter/material.dart';
 import 'transactions_list.dart';
 import 'package:provider/provider.dart';
 import 'transaction.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TransactionsPage extends StatefulWidget {
-  const TransactionsPage({
-    super.key,
-  });
+  const TransactionsPage({super.key});
 
   @override
   State<TransactionsPage> createState() => _TransactionsPageState();
 }
 
 class _TransactionsPageState extends State<TransactionsPage> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
-  final TextEditingController dateController = TextEditingController();
-  bool spent = false;
-  late DateTime? date = DateTime.now();
   String? sortOrder = 'Default';
   String? filterOptions = 'All';
-  late List<Transaction> sortedTransactions =
-      context.read<SaveData>().transactions;
-  late List<Transaction> displayedTransactions = sortedTransactions;
+  // Remove these.  They are now handled within the Consumer.
+  // late List<Transaction> sortedTransactions;
+  // late List<Transaction> displayedTransactions;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // No longer needed here.
+    // sortedTransactions = Provider.of<SaveData>(context).transactions;
+    // displayedTransactions = sortedTransactions;
+    // filterSwitch(); // Initial filtering
+  }
 
   void createTransaction() {
-    Navigator.pushReplacement(context,
+    Navigator.push(context,
         MaterialPageRoute(builder: (context) => const TransactionScreen()));
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Consumer<SaveData>(builder: (context, data, child) {
-      return data.transactions.isNotEmpty
-          ? Column(
-              children: [
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 40,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      sortDropdown(data),
-                      const SizedBox(width: 50),
-                      filterDropdown()
-                    ],
+    const color1 = Color.fromARGB(255, 215, 195, 245); // Lighter Purple
+    const color2 = Color.fromARGB(255, 185, 198, 248); // Lighter Blue
+    const color3 = Color.fromARGB(255, 255, 184, 157); // Lighter Orange
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [color1.withOpacity(0.7), Colors.white],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  SizedBox(height: screenHeight * 0.02),
+                  // Header with Dropdowns
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: sortDropdown(screenWidth),
+                        ),
+                        SizedBox(width: screenWidth * 0.02),
+                        Expanded(
+                          flex: 1,
+                          child: filterDropdown(screenWidth),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(child: TransactionsList(displayedTransactions)),
-                createTransactionButton()
-              ],
-            )
-          : createTransactionButton();
-    }));
+                  SizedBox(height: screenHeight * 0.02),
+                  // Transaction List (using Consumer)
+                  Expanded(
+                    child: Consumer<SaveData>(
+                      // Correctly placed Consumer
+                      builder: (context, saveData, child) {
+                        // *** SORTING LOGIC NOW HERE ***
+                        List<Transaction> sortedTransactions =
+                            List.from(saveData.transactions); // Create a *copy*
+
+                        switch (sortOrder) {
+                          case 'Date Ascending':
+                            sortedTransactions
+                                .sort((a, b) => a.date!.compareTo(b.date!));
+                            break;
+                          case 'Date Descending':
+                            sortedTransactions
+                                .sort((a, b) => b.date!.compareTo(a.date!));
+                            break;
+                          case 'Amount Ascending':
+                            sortedTransactions
+                                .sort((a, b) => a.amount.compareTo(b.amount));
+                            break;
+                          case 'Amount Descending':
+                            sortedTransactions
+                                .sort((a, b) => b.amount.compareTo(a.amount));
+                            break;
+                          case 'Default':
+                          default: // Good practice to have a default case
+                            // Already sorted by default (likely by insertion order)
+                            break;
+                        }
+
+                        // *** FILTERING LOGIC (also inside the Consumer) ***
+                        List<Transaction> displayedTransactions = [];
+                        switch (filterOptions) {
+                          case 'All':
+                            displayedTransactions = sortedTransactions;
+                            break;
+                          case 'Expense':
+                            displayedTransactions = sortedTransactions
+                                .where((tx) => tx.spent)
+                                .toList();
+                            break;
+                          case 'Income':
+                            displayedTransactions = sortedTransactions
+                                .where((tx) => !tx.spent)
+                                .toList();
+                            break;
+                        }
+
+                        return displayedTransactions.isNotEmpty
+                            ? TransactionsList(displayedTransactions)
+                            : Center(
+                                child: Text("No transactions yet!",
+                                    style: GoogleFonts.poppins()),
+                              );
+                      },
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.09)
+                ],
+              ),
+              // Positioned Button
+              Positioned(
+                bottom: screenHeight * 0.02,
+                left: 0,
+                right: 0,
+                child: createTransactionButton(screenWidth),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  Center createTransactionButton() {
+  // Keep this method, but remove padding/sizedbox issues from before.
+  Center createTransactionButton(double screenWidth) {
+    const color3 = Color.fromARGB(255, 255, 184, 157); // Lighter Orange
+    const color1 = Color.fromARGB(255, 215, 195, 245); // Lighter Purple
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: SizedBox(
-          width: 300,
-          height: 60,
-          child: ElevatedButton(
-            onPressed: () {
-              createTransaction();
-            },
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0),
-              ),
+      child: SizedBox(
+        width: screenWidth * 0.75,
+        height: screenWidth * 0.15,
+        child: ElevatedButton(
+          onPressed: () {
+            createTransaction();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent, // Transparent background
+            padding: EdgeInsets.zero, // Remove default padding
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(screenWidth * 0.075),
             ),
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    context.read<SaveData>().primaryColor,
-                    context.read<SaveData>().secondaryColor
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(30.0),
+            elevation: 5, // Add a subtle shadow
+            shadowColor: color1.withOpacity(0.5), // Shadow with color1
+          ),
+          child: Ink(
+            // Use Ink for the gradient
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color1, color3], // Gradient from color1 to color3
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 60),
-                alignment: Alignment.center,
-                child: const Text(
-                  "Create Transaction",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+              borderRadius: BorderRadius.circular(screenWidth * 0.075),
+            ),
+            child: Container(
+              alignment: Alignment.center,
+              child: Text(
+                "Create Transaction",
+                style: GoogleFonts.poppins(
+                  fontSize: screenWidth * 0.05,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -111,27 +201,76 @@ class _TransactionsPageState extends State<TransactionsPage> {
     );
   }
 
-  DropdownButton<String> filterDropdown() {
-    return DropdownButton(
+  Widget filterDropdown(double screenWidth) {
+    const color2 = Color.fromARGB(255, 185, 198, 248);
+
+    return Theme(
+      data: ThemeData(
+        canvasColor: Colors.white,
+      ),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(
+              horizontal: 8, vertical: 4), // Reduced padding
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: color2, width: 1.5), // Thinner border
+            borderRadius: BorderRadius.circular(8), // Smaller radius
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: color2, width: 1.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          isDense: true, // Important for reducing height
+        ),
         value: filterOptions,
+        style: GoogleFonts.poppins(
+            color: Colors.black, fontSize: screenWidth * 0.03), // Smaller font
         items: <String>['All', 'Expense', 'Income'].map((String value) {
           return DropdownMenuItem<String>(
             value: value,
-            child: Text(value),
+            child: Text(value,
+                overflow: TextOverflow.ellipsis), // Prevent overflow
           );
         }).toList(),
         onChanged: (String? newValue) {
           setState(() {
             filterOptions = newValue;
-
-            filterSwitch();
           });
-        });
+        },
+        icon: Icon(Icons.filter_list, color: color2, size: screenWidth * 0.05),
+        dropdownColor: Colors.white,
+      ),
+    );
   }
 
-  DropdownButton<String> sortDropdown(SaveData data) {
-    return DropdownButton(
+  Widget sortDropdown(double screenWidth) {
+    const color1 = Color.fromARGB(255, 215, 195, 245);
+
+    return Theme(
+      data: ThemeData(
+        canvasColor: Colors.white,
+      ),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(
+              horizontal: 8, vertical: 4), //Reduced padding
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: color1, width: 1.5), //Thinner border
+            borderRadius: BorderRadius.circular(8), //Smaller radius
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: color1, width: 1.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          isDense: true, // Important for reducing height
+        ),
         value: sortOrder,
+        style: GoogleFonts.poppins(
+            color: Colors.black, fontSize: screenWidth * 0.03), //Smaller font
         items: <String>[
           'Default',
           'Date Ascending',
@@ -139,44 +278,21 @@ class _TransactionsPageState extends State<TransactionsPage> {
           'Amount Ascending',
           'Amount Descending'
         ].map((String value) {
-          return DropdownMenuItem(
-              value: value, child: Center(child: Text(value)));
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value,
+                overflow: TextOverflow.ellipsis), // Prevent overflow
+          );
         }).toList(),
         onChanged: (String? newValue) {
           setState(() {
-            sortOrder = newValue;
-
-            switch (newValue) {
-              case 'Default':
-                sortedTransactions = data.transactions;
-              case 'Date Ascending':
-                sortedTransactions = data.dateSortedTransactionsAscending;
-              case 'Date Descending':
-                sortedTransactions = data.dateSortedTransactionsDescending;
-              case 'Amount Ascending':
-                sortedTransactions = data.amountSortedTransactionsAscending;
-              case 'Amount Descending':
-                sortedTransactions = data.amountSortedTransactionsDescending;
-            }
-
-            filterSwitch();
+            sortOrder = newValue!; // Update sortOrder
+            // No need to call filterSwitch or sortTransactions here
           });
-        });
-  }
-
-  void filterSwitch() {
-    switch (filterOptions) {
-      case 'All':
-        displayedTransactions = sortedTransactions;
-        break;
-      case 'Expense':
-        displayedTransactions =
-            sortedTransactions.where((tx) => tx.spent).toList();
-        break;
-      case 'Income':
-        displayedTransactions =
-            sortedTransactions.where((tx) => !tx.spent).toList();
-        break;
-    }
+        },
+        icon: Icon(Icons.sort, color: color1, size: screenWidth * 0.05),
+        dropdownColor: Colors.white,
+      ),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:econowise/save_data.dart';
 import 'package:econowise/settings_files/settings.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import GoogleFonts
 import 'package:provider/provider.dart';
 import 'transaction_files/transactions_page.dart';
 import 'budget_files/budget_page_layout.dart';
@@ -18,7 +19,7 @@ class MenuSelecter extends StatefulWidget {
 
 class _MenuSelecterState extends State<MenuSelecter> {
   late int _currentIndex = widget.index;
-  String appBarTitle = "Budgets";
+  String appBarTitle = "Transactions";
 
   @override
   void initState() {
@@ -33,26 +34,53 @@ class _MenuSelecterState extends State<MenuSelecter> {
 
   @override
   Widget build(BuildContext context) {
+    // Define colors here for easier access and consistency
+    const color1 = Color.fromARGB(255, 215, 195, 245); // Lighter Purple
+    const color2 = Color.fromARGB(255, 185, 198, 248); // Lighter Blue
+    // Don't use color3 (orange) in the AppBar, keep it blue/purple themed
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(appBarTitle),
+        title: Text(
+          appBarTitle,
+          style: GoogleFonts.poppins(
+            // Apply Google Fonts to AppBar title
+            fontWeight: FontWeight.w600, // Semi-bold
+            color: Colors.white, // White text
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: context.read<SaveData>().primaryColor.withAlpha(130),
+        // Use a gradient for the AppBar background
+        flexibleSpace: Container(
+          // Use flexibleSpace for the gradient
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color1, color2], // Use your color scheme
+            ),
+          ),
+        ),
+        elevation: 5, // Add a subtle shadow
+        shadowColor: color1.withOpacity(0.5), // Consistent shadow color
         actions: [
           IconButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const SettingsPage()));
-              },
-              icon: const Icon(
-                Icons.settings,
-                size: 40,
-              ))
+            onPressed: () {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (context) => const SettingsPage()));
+            },
+            icon: const Icon(
+              Icons.settings,
+              size: 30, // Slightly smaller icon
+              color: Colors.white, // White icon for contrast
+            ),
+          ),
         ],
       ),
       body: body[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        fixedColor: context.read<SaveData>().secondaryColor,
+        fixedColor: color2, // Use color2 for selected item
+        unselectedItemColor: Colors.grey[600], // Unselected items in grey
         currentIndex: _currentIndex,
         onTap: (int newIndex) {
           setState(() {

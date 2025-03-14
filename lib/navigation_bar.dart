@@ -1,7 +1,9 @@
+import 'package:econowise/login_files/login.dart';
 import 'package:econowise/save_data.dart';
-import 'package:econowise/settings_files/settings.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import GoogleFonts
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'transaction_files/transactions_page.dart';
 import 'budget_files/budget_page_layout.dart';
@@ -39,6 +41,22 @@ class _MenuSelecterState extends State<MenuSelecter> {
     const color2 = Color.fromARGB(255, 185, 198, 248); // Lighter Blue
     // Don't use color3 (orange) in the AppBar, keep it blue/purple themed
 
+    Future<void> logoutUser(BuildContext context) async {
+      try {
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        await FirebaseAuth.instance.signOut();
+        await googleSignIn.disconnect();
+
+        context.read<SaveData>().transactions.clear();
+        context.read<SaveData>().budgets.clear();
+
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const LoginPage()));
+      } catch (e) {
+        //catch
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -53,7 +71,7 @@ class _MenuSelecterState extends State<MenuSelecter> {
         // Use a gradient for the AppBar background
         flexibleSpace: Container(
           // Use flexibleSpace for the gradient
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -65,12 +83,9 @@ class _MenuSelecterState extends State<MenuSelecter> {
         shadowColor: color1.withOpacity(0.5), // Consistent shadow color
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => const SettingsPage()));
-            },
+            onPressed: () => logoutUser(context),
             icon: const Icon(
-              Icons.settings,
+              Icons.logout,
               size: 30, // Slightly smaller icon
               color: Colors.white, // White icon for contrast
             ),

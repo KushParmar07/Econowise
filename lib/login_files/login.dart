@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:econowise/navigation_bar.dart';
 import 'package:econowise/save_data.dart';
@@ -93,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
       final screenHeight = constraints.maxHeight;
 
       return Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -173,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         children: [
                           _isLoading
-                              ? CircularProgressIndicator(
+                              ? const CircularProgressIndicator(
                                   valueColor:
                                       AlwaysStoppedAnimation<Color>(color3),
                                 )

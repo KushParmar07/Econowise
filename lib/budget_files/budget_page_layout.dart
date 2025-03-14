@@ -1,5 +1,8 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:econowise/save_data.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 import 'package:percent_indicator/percent_indicator.dart';
 import 'budget.dart';
 import 'package:provider/provider.dart';
@@ -141,221 +144,85 @@ class _BudgetPageState extends State<BudgetPage> {
         (selectedBudgetDetails.totalUsed / selectedBudgetDetails.budgetAmount)
             .clamp(0.0, 1.0);
 
-    Size size = MediaQuery.of(context).size;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
+    const color1 = Color.fromARGB(255, 215, 195, 245); // Lighter Purple
     return Scaffold(
-      body: budgets.isNotEmpty
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 15),
-                budgetListDisplay(),
-                displayGrayBackground(
-                    size, budgetDetailsDisplay(percentageUsed)),
-              ],
-            )
-          : createBudgetButton(),
-    );
-  }
-
-  Expanded displayGrayBackground(Size size, Widget inside) {
-    return Expanded(
-      child: Container(
+      body: Container(
         decoration: BoxDecoration(
-          border: Border.all(
-            color: const Color.fromARGB(255, 228, 222, 222).withOpacity(0.3),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [color1.withOpacity(0.7), Colors.white],
           ),
-          borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(40), topRight: Radius.circular(40)),
-          color: const Color.fromARGB(255, 228, 222, 222).withOpacity(0.3),
         ),
-        width: size.width,
-        child: inside,
+        child: SafeArea(
+          child: context.watch<SaveData>().budgets.isNotEmpty // Use Consumer
+              ? SingleChildScrollView(
+                  // Wrap the ENTIRE Column in SingleChildScrollView
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                          height: screenHeight * 0.02), // Consistent spacing
+                      budgetListDisplay(),
+                      SizedBox(
+                          height: screenHeight *
+                              0.02), // Space between list and details
+                      //  **** THIS IS WHERE IT NEEDS TO BE ****
+                      budgetDetailsDisplay(
+                          percentageUsed, screenWidth, screenHeight),
+                      SizedBox(height: screenHeight * 0.05)
+                    ],
+                  ),
+                )
+              : Center(
+                  child: createBudgetButton(screenWidth)), // Centered button
+        ),
       ),
     );
   }
 
-  SingleChildScrollView budgetDetailsDisplay(double percentageUsed) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 15),
-          Text(
-            selectedBudget.goal,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Icon(
-            selectedBudgetDetails.icon,
-            size: 60,
-            color: selectedBudgetDetails.color,
-          ),
-          const SizedBox(height: 35),
-          CircularPercentIndicator(
-            radius: 150,
-            lineWidth: 35,
-            percent: percentageUsed,
-            progressColor: selectedBudgetDetails.color,
-            backgroundColor: selectedBudgetDetails.color.withOpacity(0.2),
-            center: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Amount Used'),
-                Text(
-                  '\$${selectedBudgetDetails.totalUsed.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'of \$${selectedBudgetDetails.budgetAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Center createBudgetButton(double screenWidth) {
+    const color3 = Color.fromARGB(255, 255, 184, 157); // Lighter Orange
+    const color1 = Color.fromARGB(255, 215, 195, 245); // Lighter Purple
 
-  SizedBox budgetListDisplay() {
-    List<Budget> reversedBudgets = List.from(budgets.reversed);
-
-    return SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal, // Scroll horizontally
-        itemCount: reversedBudgets.length + 1, // Include the "Add" button
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  InkWell(
-                    onTap: createBudget,
-                    borderRadius: BorderRadius.circular(10),
-                    child: Ink(
-                      width: 50,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.add, size: 30),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else {
-            final budget = reversedBudgets[index - 1];
-            final isSelected = budget == selectedBudget;
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  InkWell(
-                    onTap: () => changeActive(budget),
-                    borderRadius: BorderRadius.circular(15),
-                    child: Ink(
-                      width: isSelected ? 130 : 120,
-                      height: isSelected ? 160 : 140,
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? budget.color.withOpacity(0.9)
-                            : budget.color.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                    color: budget.color.withOpacity(0.2),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 10))
-                              ]
-                            : null,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            height: 25,
-                          ),
-                          Text(
-                            budget.goal,
-                            style: TextStyle(
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: Colors.white,
-                                fontSize: 16),
-                          ),
-                          Text('\$${budget.totalUsed.toStringAsFixed(2)}',
-                              style: const TextStyle(color: Colors.white)),
-                          Text(
-                            'of \$${budget.budgetAmount.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.white),
-                          ),
-                          IconButton(
-                              onPressed: () {
-                                showBudgetOptions(budget);
-                              },
-                              icon: const Icon(Icons.more_horiz))
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  Center createBudgetButton() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(screenWidth * 0.05),
         child: SizedBox(
-          width: 300,
-          height: 60,
+          width: screenWidth * 0.75,
+          height: screenWidth * 0.15,
           child: ElevatedButton(
             onPressed: () {
               createBudget();
             },
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.zero,
+              backgroundColor: Colors.transparent, // Transparent background
+              padding: EdgeInsets.zero, // Remove default padding
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0),
+                borderRadius: BorderRadius.circular(screenWidth * 0.075),
               ),
+              elevation: 5, // Add a subtle shadow
+              shadowColor: color1.withOpacity(0.5), // Shadow with color1
             ),
             child: Ink(
+              // Use Ink for the gradient
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
+                  colors: [color1, color3], // Gradient from color1 to color3
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: [
-                    context.read<SaveData>().primaryColor,
-                    context.read<SaveData>().secondaryColor
-                  ],
                 ),
-                borderRadius: BorderRadius.circular(30.0),
+                borderRadius: BorderRadius.circular(screenWidth * 0.075),
               ),
               child: Container(
-                constraints: const BoxConstraints(minHeight: 60),
                 alignment: Alignment.center,
-                child: const Text(
+                child: Text(
                   "Create Budget",
-                  style: TextStyle(
-                    fontSize: 20,
+                  style: GoogleFonts.poppins(
+                    fontSize: screenWidth * 0.05,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -364,6 +231,188 @@ class _BudgetPageState extends State<BudgetPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget budgetDetailsDisplay(
+      double percentageUsed, double screenWidth, double screenHeight) {
+    return Container(
+      margin: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.05), // Margins around the container
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromARGB(255, 215, 195, 245)
+                .withOpacity(0.25), // Keep a VERY subtle shadow
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        // Removed SingleChildScrollView, as whole page is scrollable
+        children: [
+          SizedBox(height: screenHeight * 0.02),
+          Text(
+            selectedBudget.goal,
+            style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.06, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: screenHeight * 0.01),
+          Icon(
+            selectedBudgetDetails.icon,
+            size: screenWidth * 0.15, // Relative icon size
+            color: selectedBudgetDetails.color,
+          ),
+          SizedBox(
+              height: screenHeight * 0.04), // More space before the indicator
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: CircularPercentIndicator(
+              radius: screenWidth * 0.30, // Relative radius
+              lineWidth: screenWidth * 0.07, // Relative line width
+              percent: percentageUsed,
+              progressColor: selectedBudgetDetails.color,
+              backgroundColor: selectedBudgetDetails.color.withOpacity(0.2),
+              circularStrokeCap:
+                  CircularStrokeCap.round, // Rounded ends for the progress bar
+              center: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Amount Used',
+                    style: GoogleFonts.poppins(fontSize: screenWidth * 0.035),
+                  ),
+                  Text(
+                    '\$${selectedBudgetDetails.totalUsed.toStringAsFixed(2)}',
+                    style: GoogleFonts.poppins(
+                      fontSize: screenWidth * 0.05, // Larger font size
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'of \$${selectedBudgetDetails.budgetAmount.toStringAsFixed(2)}',
+                    style: GoogleFonts.poppins(fontSize: screenWidth * 0.03),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: screenHeight * 0.04),
+        ],
+      ),
+    );
+  }
+
+  Widget budgetListDisplay() {
+    List<Budget> reversedBudgets = List.from(budgets.reversed);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight =
+        MediaQuery.of(context).size.height; // Get screen height
+
+    return SizedBox(
+      height: screenHeight * 0.22, // Use screenHeight for relative height
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: reversedBudgets.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            // "Add Budget" Button
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.02,
+                  vertical: screenHeight * 0.01), // Relative padding
+              child: InkWell(
+                onTap: createBudget,
+                borderRadius: BorderRadius.circular(15),
+                child: Container(
+                  width: screenWidth * 0.15, // Relative width
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Icon(Icons.add,
+                      size: screenWidth * 0.07), // Relative icon size
+                ),
+              ),
+            );
+          } else {
+            // Budget Cards
+            final budget = reversedBudgets[index - 1];
+            final isSelected = budget == selectedBudget;
+
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.02,
+                  vertical: screenHeight * 0.01), // Relative padding
+              child: InkWell(
+                onTap: () => changeActive(budget),
+                borderRadius: BorderRadius.circular(15),
+                child: AnimatedContainer(
+                  // Use AnimatedContainer
+                  duration:
+                      const Duration(milliseconds: 200), // Animation duration
+                  curve: Curves.easeInOut, // Animation curve
+                  width: isSelected ? screenWidth * 0.35 : screenWidth * 0.3,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? budget.color.withOpacity(0.9)
+                        : budget.color.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: budget.color
+                                  .withOpacity(0.4), // Stronger shadow
+                              spreadRadius: 2,
+                              blurRadius: 8, // Increased blur
+                              offset: const Offset(0, 6),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: screenHeight * 0.01), // Relative spacing
+                      Text(
+                        budget.goal,
+                        style: GoogleFonts.poppins(
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: Colors.white,
+                          fontSize: screenWidth * 0.035,
+                        ),
+                      ),
+                      Text(
+                        '\$${budget.totalUsed.toStringAsFixed(2)}',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: screenWidth * 0.03,
+                        ), // Added font size
+                      ),
+                      Text(
+                        'of \$${budget.budgetAmount.toStringAsFixed(2)}',
+                        style: GoogleFonts.poppins(
+                            fontSize: screenWidth * 0.025,
+                            color: Colors.white), // Added font size
+                      ),
+                      IconButton(
+                          onPressed: () {
+                            showBudgetOptions(budget);
+                          },
+                          icon: const Icon(Icons.more_horiz),
+                          color: Colors.white) // Added color
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }

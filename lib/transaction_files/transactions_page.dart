@@ -37,8 +37,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   Widget build(BuildContext context) {
     const color1 = Color.fromARGB(255, 215, 195, 245); // Lighter Purple
-    const color2 = Color.fromARGB(255, 185, 198, 248); // Lighter Blue
-    const color3 = Color.fromARGB(255, 255, 184, 157); // Lighter Orange
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -177,7 +175,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
           child: Ink(
             // Use Ink for the gradient
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [color1, color3], // Gradient from color1 to color3
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
@@ -210,14 +208,15 @@ class _TransactionsPageState extends State<TransactionsPage> {
       ),
       child: DropdownButtonFormField<String>(
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(
+          contentPadding: const EdgeInsets.symmetric(
               horizontal: 8, vertical: 4), // Reduced padding
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: color2, width: 1.5), // Thinner border
+            borderSide:
+                const BorderSide(color: color2, width: 1.5), // Thinner border
             borderRadius: BorderRadius.circular(8), // Smaller radius
           ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: color2, width: 1.5),
+            borderSide: const BorderSide(color: color2, width: 1.5),
             borderRadius: BorderRadius.circular(8),
           ),
           filled: true,
@@ -254,14 +253,15 @@ class _TransactionsPageState extends State<TransactionsPage> {
       ),
       child: DropdownButtonFormField<String>(
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(
+          contentPadding: const EdgeInsets.symmetric(
               horizontal: 8, vertical: 4), //Reduced padding
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: color1, width: 1.5), //Thinner border
+            borderSide:
+                const BorderSide(color: color1, width: 1.5), //Thinner border
             borderRadius: BorderRadius.circular(8), //Smaller radius
           ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: color1, width: 1.5),
+            borderSide: const BorderSide(color: color1, width: 1.5),
             borderRadius: BorderRadius.circular(8),
           ),
           filled: true,
